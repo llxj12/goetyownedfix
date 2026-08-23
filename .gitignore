@@ -1,0 +1,24 @@
+# build output
+build211/
+test/out/
+out/
+
+# downloaded target mod jars & scratch dirs (do not push to git)
+修改目标MOD/
+日志/
+.analysis/
+.verify/
+
+# release binaries: attach the built jar to GitHub Releases instead of the repo
+*.jar
+
+# compiled classes
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
