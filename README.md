@@ -1,5 +1,7 @@
 # 诡厄巫法召唤物崩溃补丁 (goetyownedfix)
 
+[English README](README_EN.md)
+
 一个 Forge 1.20.1 迷你补丁，修复 **诡厄巫法 (Goety) 的 `isAlliedTo` 空指针崩溃家族**。
 
 ## 症状
