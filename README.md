@@ -22,7 +22,7 @@ java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity
     at Goety...Apostle.m_7307_ (Apostle.java:399)
 ```
 
-常见触发场景：**狱焰、僵尸仆从等 Goety 召唤物受伤时**（尤其下界、多只同类召唤物在场时），以及 **Apostle（大主教）相关战斗**。
+常见触发场景：**狱焰、僵尸仆从等 Goety 召唤物受伤时**（尤其下界、多只同类召唤物在场时），以及 **Apostle（亚波伦）相关战斗**。
 
 ## 原因
 
