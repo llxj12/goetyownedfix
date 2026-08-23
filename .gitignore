@@ -22,3 +22,6 @@ out/
 .settings/
 .classpath
 .project
+
+# stray scratch
+vf/
