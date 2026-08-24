@@ -4,9 +4,9 @@ license="MIT"
 
 [[mods]]
 modId="goetyfix"
-version="1.1.0"
+version="1.1.1"
 displayName="诡厄巫法召唤物崩溃补丁"
-description="Fixes the 'Ticking entity' NullPointerException family in Goety's isAlliedTo overrides (SRG m_7307_). HurtByTargetGoal.alertOthers passes a null entity (cleared/absent getLastHurtByMob) into isAlliedTo; vanilla 1.20.1 Entity.isAlliedTo dereferences the argument (p.getTeam()) with no null check, and Goety's 19 overriding classes (Apostle.java:399, Owned, Vizier, BoneLord, SkullLord, Cultist, ...) either dereference it directly or forward it to the unguarded vanilla method. v1.1 null-guards every Goety override plus the vanilla Entity.isAlliedTo entry point as a safety net: a null argument returns false (a null entity can never be an ally), all other calls pass through unchanged with zero side effects. Mixin-only, contains no Goety code."
+description="Fixes the 'Ticking entity' NullPointerException family in Goety's isAlliedTo overrides (SRG m_7307_). HurtByTargetGoal.alertOthers passes a null entity (cleared/absent getLastHurtByMob) into isAlliedTo; vanilla 1.20.1 Entity.isAlliedTo dereferences the argument (p.getTeam()) with no null check, and Goety's 19 overriding classes (Apostle.java:399, Owned, Vizier, BoneLord, SkullLord, Cultist, ...) either dereference it directly or forward it to the unguarded vanilla method. v1.1.1 null-guards every Goety override plus the vanilla Entity.isAlliedTo safety net plus RevelationFix's HereticServant caller (the real crash caller in '灾变，诡厄巫法生存'-style packs, verified from a live crash report): a null argument returns false (a null entity can never be an ally), all other calls pass through unchanged with zero side effects. Mixin-only, contains no Goety or RevelationFix code. Soft mode: if a future update removes a target class, the mixin is skipped with a warning instead of crashing the game."
 authors="LLXJ"
 
 [[dependencies.goetyfix]]

@@ -22,7 +22,7 @@ java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity
     at Goety...Apostle.m_7307_ (Apostle.java:399)
 ```
 
-常见触发场景：**狱焰、僵尸仆从等 Goety 召唤物受伤时**（尤其下界、多只同类召唤物在场时），以及 **Apostle（亚波伦）相关战斗**。
+常见触发场景：**狱焰、僵尸仆从等 Goety 召唤物受伤时**（尤其下界、多只同类召唤物在场时），以及 **Apostle（亚波伦）相关战斗**。已按真实崩溃日志核实的一条完整链路：下界中 **RevelationFix 的异教徒 (HereticServant) 受伤** → `HurtByTargetGoal.alertOthers` → `HereticServant.isAlliedTo(null)` → `Apostle.isAlliedTo(null)` → 399 行 NPE。
 
 ## 原因
 
@@ -41,17 +41,19 @@ Goety 的多个实体类重写了 `isAlliedTo(Entity)`（SRG: `m_7307_`）。当
 - `Apostle`、`Vizier`、`VizierClone`、`BoneLord`、`SkullLord`、`BroodMother`、`Cultist`、`Heretic`、`Irk`、`Ripper`、`SquallGolem`、`WitherNecromancer`、`HostileDrownedNecromancer`、`HostileRedstoneGolem`、`HostileRedstoneMonstrosity`、`HuntingIllagerEntity`、`AbstractEnderling`、`AbstractSpiderServant`
 - 原版 `Entity`（兜底）
 - `MobUtil.illagerAllies`（工具类内部对参数无空判断，一并防护）
+- `HereticServant`（v1.1.1 新增：RevelationFix 的异教徒，实际崩溃调用方，见下）
 
 null 不可能是盟友，返回 false 安全且正确；**对有效实体的判断完全不受影响**，零副作用。mixin-only，不含任何 Goety 代码。
 
 ### 附属 mod 兼容性（已逐一扫描验证）
 
-GoetyAwaken、GoetyLadder、GoetyRevelation、goetygrae 等附属中重写 `isAlliedTo` 的类（Awaken 4 个 + Ladder 1 个）均为「透传 super」实现，最终会落到本补丁已覆盖的 Goety 类或原版 `Entity`，**无需单独打补丁**，由兜底 mixin 自动覆盖。
+- GoetyAwaken、GoetyLadder、GoetyRevelation、goetygrae 等附属中重写 `isAlliedTo` 的类（Awaken 4 个 + Ladder 1 个）均为「透传 super」实现，最终会落到本补丁已覆盖的 Goety 类或原版 `Entity`，由兜底 mixin 自动覆盖。
+- **RevelationFix（v1.1.1）**：经真实崩溃日志核实，`HereticServant`（异教徒，RevelationFix 的类，通常经 GoetyRevelation 的 JarJar 内嵌加载）会把 null 透传进 Goety `Apostle.isAlliedTo` 导致 399 行崩溃——v1.1.1 已为 `HereticServant.m_7307_` 入口新增空判断（调用方侧兜底）。若未装 RevelationFix，软模式会自动跳过该 mixin，不影响使用。
 
 ## 安装
 
 - 需要 **Forge 1.20.1 (47.x)** + **Goety 2.5.56+**（已在 2.5.57.0 上验证）
-- 把发布版 jar 丢进 `mods` 文件夹即可（**替换掉旧版 goetyownedfix-1.0.0.jar，不要两个同时装**）
+- 把发布版 jar 丢进 `mods` 文件夹即可（**替换旧版 goetyownedfix-1.0.0 / 1.1.0，不要同时装**）
 - 与 RevelationFix / Goety:Revelation / Goety 各附属共存，无冲突
 - 客户端和服务端**都要装**（集成服务器 = 开存档的那台机器必须装）
 
@@ -81,7 +83,8 @@ javac -encoding UTF-8 -proc:none -source 17 -target 17 \
 
 ## 版本历史
 
-- **1.1.0**：覆盖全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底（修复 Apostle.java:399 等同类崩溃）
+- **1.1.1**：新增 RevelationFix `HereticServant` 调用方入口守卫（经群友真实崩溃日志核实为实际崩溃路径，双保险）
+- **1.1.0**：覆盖全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底 + `MobUtil.illagerAllies` 防护 + 软模式抗崩溃
 - **1.0.0**：仅修复 `Owned.isAlliedTo`
 
 ## 许可

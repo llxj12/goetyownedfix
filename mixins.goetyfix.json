@@ -12,6 +12,7 @@
     "CultistNullGuardMixin",
     "EntityIsAlliedToNullGuardMixin",
     "HereticNullGuardMixin",
+    "HereticServantNullGuardMixin",
     "HostileDrownedNecromancerNullGuardMixin",
     "HostileRedstoneGolemNullGuardMixin",
     "HostileRedstoneMonstrosityNullGuardMixin",

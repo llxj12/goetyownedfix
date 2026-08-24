@@ -22,7 +22,7 @@ java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity
     at Goety...Apostle.m_7307_ (Apostle.java:399)
 ```
 
-Common triggers: **Goety summons (Inferno, Zombie Servants, ...) taking damage** (especially in the Nether, or when several summons of the same kind are around), and **fights involving the Apostle boss**.
+Common triggers: **Goety summons (Inferno, Zombie Servants, ...) taking damage** (especially in the Nether, or when several summons of the same kind are around), and **fights involving the Apostle boss**. One verified real-world chain: in the Nether, a **RevelationFix HereticServant taking damage** → `HurtByTargetGoal.alertOthers` → `HereticServant.isAlliedTo(null)` → `Apostle.isAlliedTo(null)` → NPE at line 399.
 
 ## Root Cause
 
@@ -41,6 +41,7 @@ Entry-level null guards are injected into **all 19 overrides** (a null argument 
 - `Apostle`, `Vizier`, `VizierClone`, `BoneLord`, `SkullLord`, `BroodMother`, `Cultist`, `Heretic`, `Irk`, `Ripper`, `SquallGolem`, `WitherNecromancer`, `HostileDrownedNecromancer`, `HostileRedstoneGolem`, `HostileRedstoneMonstrosity`, `HuntingIllagerEntity`, `AbstractEnderling`, `AbstractSpiderServant`
 - vanilla `Entity` (safety net)
 - `MobUtil.illagerAllies` (the helper itself dereferences its arguments without a null check; guarded as well)
+- `HereticServant` (v1.1.1: RevelationFix's cultist — the verified real-world crash caller, see below)
 
 A null entity can never be an ally, so returning false is safe and correct; **checks on valid entities are completely unaffected — zero side effects**. Mixin-only, contains no Goety code.
 
@@ -48,10 +49,12 @@ A null entity can never be an ally, so returning false is safe and correct; **ch
 
 GoetyAwaken (4 classes) and GoetyLadder (1 class) overrides are pass-through implementations that resolve to already-guarded Goety classes or the vanilla `Entity` safety net — **no extra patches needed**. GoetyRevelation and goetygrae declare no overrides.
 
+**RevelationFix (v1.1.1)**: verified from a real crash report — `HereticServant` (the "异教徒" cultist, a RevelationFix class normally loaded via GoetyRevelation's JarJar bundle) forwards a null entity into Goety's `Apostle.isAlliedTo`, crashing at Apostle.java:399. v1.1.1 adds an entry guard on `HereticServant.m_7307_` (caller-side safety net). If RevelationFix is not installed, soft mode skips this mixin with a warning and the game still starts.
+
 ## Installation
 
 - Requires **Forge 1.20.1 (47.x)** + **Goety 2.5.56+** (verified on 2.5.57.0)
-- Drop the release jar (see Releases) into the `mods` folder (**replace the old goetyownedfix-1.0.0.jar — do not install both**)
+- Drop the release jar (see Releases) into the `mods` folder (**replace the old goetyownedfix-1.0.0 / 1.1.0 — do not install both**)
 - Install on **both client and server** (for integrated servers, the machine hosting the save must have it)
 - Coexists with RevelationFix / Goety:Revelation / GoetyAwaken and other Goety addons without conflicts
 
@@ -81,6 +84,7 @@ When packaging: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyf
 
 ## Changelog
 
+- **1.1.1**: added RevelationFix `HereticServant` caller-side entry guard (verified real-world crash path from a live crash report — double safety net)
 - **1.1.0**: all 19 `isAlliedTo` overrides + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft-mode crash resistance (fixes Apostle.java:399 and the rest of the family)
 - **1.0.0**: only `Owned.isAlliedTo` fixed
 
