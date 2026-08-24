@@ -8,6 +8,10 @@ out/
 日志/
 .analysis/
 .verify/
+.verify2/
+
+# test run logs
+test/*.log
 
 # release binaries: attach the built jar to GitHub Releases instead of the repo
 *.jar
