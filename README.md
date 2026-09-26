@@ -4,16 +4,14 @@
 
 一个 **NeoForge 1.21.1** 迷你补丁，修复 **诡厄巫法 (Goety) 的 `isAlliedTo` 空指针崩溃家族**。
 
-> 本目录是 1.20.1 / Forge 版的移植分支。1.20.1 原版源码保留在 `legacy-forge-1.20.1/`，两份 jar 的 modId 同为 `goetyfix`，**同一次游戏只能装其中一个**。
-
 ## 症状
 
 进世界/下界或与亚波伦系列战斗时游戏崩溃，崩溃报告为：
 
 ```
 Ticking entity
-java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.m_6095_()" because "entityIn" is null
-    at net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal.m_26047_(HurtByTargetGoal.java:95)
+java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.getType()" because "entityIn" is null
+    at net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal.alertOthers (HurtByTargetGoal.java:95)
 ```
 
 常见触发场景：**召唤物/信徒受伤时**（尤其下界、多只同类在场时），以及 **Apostle（亚波伦）相关战斗**。
@@ -37,21 +35,10 @@ Goety 的多个实体类重写了 `isAlliedTo(Entity)`。当目标 AI `HurtByTar
 
 null 不可能是盟友，返回 false 安全且正确；**对有效实体（非 null 参数）的判断完全不受影响**，零副作用。mixin-only，不含任何 Goety 代码。
 
-### 与 1.20.1 版的实现差异
-
-| 项目 | 1.20.1 / Forge | 1.21.1 / NeoForge（本版） |
-| --- | --- | --- |
-| 注入的方法名 | SRG `m_7307_` | 官方名 `isAlliedTo`（NeoForge 1.21.1 不再用 SRG 运行时名） |
-| 元数据文件 | `META-INF/mods.toml`（`mandatory=`，依赖 modId `forge`） | `META-INF/neoforge.mods.toml`（`type="required"`，依赖 modId `neoforge`） |
-| mixin 配置加载 | manifest `MixinConfigs` | manifest `MixinConfigs` **+** `[[mixins]] config=` 声明（NeoForge 1.21.x 走后者） |
-| 目标 Goety | 2.5.56+ | 3.1.5+（1.21.1 移植版） |
-| 覆盖 mixin 数 | 22（含 RevelationFix `HereticServant`） | 21（RevelationFix 无 1.21.1 版，未包含；如后续有 1.21.1 版可加回） |
-
 ## 安装
 
 - 需要 **NeoForge 1.21.1（21.1.x）** + **Goety 3.1.5+（1.21.1 移植版）**
 - 把 `dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar` 丢进 `mods` 文件夹即可
-- **不要与 1.20.1/Forge 版同时安装**（modId 相同、加载器不同）
 - 客户端和服务端**都要装**（集成服务器 = 开存档的那台机器必须装）
 
 ## 兼容性
@@ -128,10 +115,7 @@ python .\tools\validate_metadata.py .\dist\goetyownedfix-2.0.0-neoforge-1.21.1.j
 
 ## 版本历史
 
-- **2.0.0**（本版，1.21.1 / NeoForge）：移植到 NeoForge 1.21.1，注入名从 SRG `m_7307_` 改为官方 `isAlliedTo`；覆盖 Goety 3.1.5.1 全部 19 个重写类 + 原版 `Entity` 兜底 + `MobUtil.illagerAllies`；新增 `[[mixins]]` 元数据声明与静态验证脚本
-- **1.1.1**（1.20.1 / Forge）：新增 RevelationFix `HereticServant` 调用方入口守卫
-- **1.1.0**（1.20.1 / Forge）：覆盖全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底 + `MobUtil.illagerAllies` 防护 + 软模式抗崩溃
-- **1.0.0**（1.20.1 / Forge）：仅修复 `Owned.isAlliedTo`
+- **2.0.0**：适配 Minecraft 1.21.1 / NeoForge；覆盖 Goety 3.1.5.1 全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底 + `MobUtil.illagerAllies` 防护 + 软模式抗崩溃
 
 ## 许可
 

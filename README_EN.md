@@ -4,16 +4,14 @@
 
 A tiny **NeoForge 1.21.1** patch that fixes the **`isAlliedTo` NullPointerException family in Goety**.
 
-> This directory is the 1.21.1 port of the original Forge 1.20.1 mod. The 1.20.1 sources are kept in `legacy-forge-1.20.1/`. Both jars use the same modId (`goetyfix`) — **install only one of them**.
-
 ## Symptom
 
 The game crashes while entering a world / the Nether or during Apostle fights:
 
 ```
 Ticking entity
-java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.m_6095_()" because "entityIn" is null
-    at net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal.m_26047_(HurtByTargetGoal.java:95)
+java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.getType()" because "entityIn" is null
+    at net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal.alertOthers (HurtByTargetGoal.java:95)
 ```
 
 Typical triggers: **whenever a Goety summon or cultist takes damage** (especially in the Nether, with several of the same mob nearby), and during **Apostle** encounters.
@@ -37,21 +35,10 @@ A null check is injected at the `isAlliedTo` entry point of all 19 overriding cl
 
 A null entity can never be an ally, so returning `false` is safe and correct; **judgements for non-null arguments are completely unaffected** (zero side effects). Mixin-only — it contains no Goety code.
 
-### Differences from the 1.20.1 build
-
-| Item | 1.20.1 / Forge | 1.21.1 / NeoForge (this build) |
-| --- | --- | --- |
-| Injected method name | SRG `m_7307_` | official `isAlliedTo` (NeoForge 1.21.1 no longer uses SRG runtime names) |
-| Metadata file | `META-INF/mods.toml` (`mandatory=`, depends on modId `forge`) | `META-INF/neoforge.mods.toml` (`type="required"`, depends on modId `neoforge`) |
-| Mixin config loading | manifest `MixinConfigs` | manifest `MixinConfigs` **and** `[[mixins]] config=` declaration (NeoForge 1.21.x uses the latter) |
-| Target Goety | 2.5.56+ | 3.1.5+ (1.21.1 port) |
-| Mixin count | 22 (incl. RevelationFix `HereticServant`) | 21 (RevelationFix has no 1.21.1 build; can be added back later) |
-
 ## Installation
 
 - Requires **NeoForge 1.21.1 (21.1.x)** and **Goety 3.1.5+ (1.21.1 port)**
 - Drop `dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar` into your `mods` folder
-- **Do not install it next to the 1.20.1/Forge build** (same modId, different loader)
 - Install on **both client and server** (for a single-player world, the machine hosting the world)
 
 ## Compatibility
@@ -128,10 +115,7 @@ Exact dependency versions, sources and reproduction steps are in `BUILD-MANIFEST
 
 ## Version history
 
-- **2.0.0** (this build, 1.21.1 / NeoForge): ported to NeoForge 1.21.1 with official `isAlliedTo` injection instead of SRG `m_7307_`; covers all 19 Goety 3.1.5.1 overrides + vanilla `Entity` safety net + `MobUtil.illagerAllies`; adds the `[[mixins]]` metadata declaration and a static verifier
-- **1.1.1** (1.20.1 / Forge): caller-side guard for RevelationFix `HereticServant`
-- **1.1.0** (1.20.1 / Forge): all 19 `isAlliedTo` overrides + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft mode
-- **1.0.0** (1.20.1 / Forge): only `Owned.isAlliedTo`
+- **2.0.0**: ported to Minecraft 1.21.1 / NeoForge; covers all 19 `isAlliedTo` overrides in Goety 3.1.5.1 + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft-mode crash resistance
 
 ## License
 
