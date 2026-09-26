@@ -76,8 +76,6 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体（非
 
 打包要点：jar 的 `META-INF/MANIFEST.MF` 必须包含 `MixinConfigs: mixins.goetyfix.json`，且包含 `META-INF/neoforge.mods.toml` 与 `mixins.goetyfix.json`（1.21.1 的 mod jar 不需要 `pack.mcmeta`）。
 
-发布前自检：`.\verify.ps1 -Audit`（目标类与描述符校验 + 覆盖率）与 `python .\tools\validate_metadata.py <jar> 2.0.0`（TOML/JSON 元数据校验）。构建依赖的确切版本、来源与复现步骤见 `BUILD-MANIFEST.md`。
-
 ## 版本历史
 
 - **2.0.0**：适配 Minecraft 1.21.1 / NeoForge；覆盖 Goety 3.1.5.1 全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底 + `MobUtil.illagerAllies` 防护 + 软模式抗崩溃

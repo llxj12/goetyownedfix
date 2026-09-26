@@ -76,8 +76,6 @@ Classpath jars (read from `..\_mc1211_tools\deps\`, falling back to the local la
 
 Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyfix.json`, and the jar must contain `META-INF/neoforge.mods.toml` and `mixins.goetyfix.json` (a 1.21.1 mod jar does not need `pack.mcmeta`).
 
-Before shipping, run `.\verify.ps1 -Audit` (target classes and descriptors + coverage) and `python .\tools\validate_metadata.py <jar> 2.0.0` (TOML/JSON metadata). Exact dependency versions, sources and reproduction steps are in `BUILD-MANIFEST.md`.
-
 ## Version history
 
 - **2.0.0**: ported to Minecraft 1.21.1 / NeoForge; covers all 19 `isAlliedTo` overrides in Goety 3.1.5.1 + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft-mode crash resistance

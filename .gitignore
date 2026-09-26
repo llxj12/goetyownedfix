@@ -1,3 +1,7 @@
+# ---- maintainer-only material (audit notes, build manifests, old sources):
+#      kept on disk for maintenance, never published ----
+_local/
+
 # ---- build output (1.21.1 / NeoForge branch) ----
 build/
 dist/
