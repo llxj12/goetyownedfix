@@ -1,23 +1,27 @@
-# build output
-build211/
-test/out/
+# ---- build output (1.21.1 / NeoForge branch) ----
+build/
+dist/
 out/
+test/out/
+build211/
 
-# downloaded target mod jars & scratch dirs (do not push to git)
+# ---- downloaded target mod jars, MC logs, scratch dirs (never push) ----
 修改目标MOD/
 日志/
 .analysis/
 .verify/
 .verify2/
-
-# test run logs
 test/*.log
 
-# release binaries: attach the built jar to GitHub Releases instead of the repo
+# release binaries: attach built jars to GitHub Releases instead of committing them
 *.jar
 
 # compiled classes
 *.class
+
+# python bytecode from the static verifier
+__pycache__/
+*.pyc
 
 # IDE
 .idea/
