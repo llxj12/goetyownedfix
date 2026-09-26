@@ -74,44 +74,9 @@ Classpath jars (read from `..\_mc1211_tools\deps\`, falling back to the local la
 | `loader-4.0.42.jar` | FancyModLoader, provides the `@Mod` annotation |
 | `goety-3.1.5.1.jar` | the mixin target (Goety 1.21.1 port) |
 
-Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyfix.json`, and the jar must contain `META-INF/neoforge.mods.toml`, `mixins.goetyfix.json` and `pack.mcmeta`.
+Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyfix.json`, and the jar must contain `META-INF/neoforge.mods.toml` and `mixins.goetyfix.json` (a 1.21.1 mod jar does not need `pack.mcmeta`).
 
-## Static verification
-
-`verify.ps1` checks the built jar **without launching the game**:
-
-1. every `@Mixin` target really exists in Goety 3.1.5.1 / Minecraft 1.21.1;
-2. each target really declares the injected `isAlliedTo(Entity)` (exact descriptor match) / `MobUtil.illagerAllies(Entity,Entity)`;
-3. the classes listed in `mixins.goetyfix.json` and the mixin classes inside the jar match exactly;
-4. `neoforge.mods.toml` carries modId, version, all three dependencies and the `[[mixins]]` declaration;
-5. the manifest carries `MixinConfigs`;
-6. coverage: how many of Goety's `isAlliedTo(Entity)` overrides are guarded (currently **19/19**).
-
-```powershell
-.\verify.ps1            # target classes/descriptors + coverage
-.\verify.ps1 -Audit     # plus a bytecode audit proving the bug still exists in 3.1.5.1
-```
-
-The **bytecode audit** (`tools/audit_allied.py`, `tools/bytecode_probe.py`) disassembles all 19 `isAlliedTo` overrides plus the `MobUtil` helpers in Goety 3.1.5.1 and decides whether a null argument can reach a dereference. Current result (details in `GOETY-3.1.5.1-AUDIT.md`):
-
-| Class | Count | Consequence for a null argument |
-| --- | --- | --- |
-| dereferences the argument directly (e.g. `Apostle`'s very first instruction is `Entity.getType()`) | 8 | immediate NPE |
-| passes through to super, ending in vanilla `Entity.isAlliedTo` (a 9-byte body with zero null checks) | 3 | NPE in vanilla |
-| delegates to `MobUtil.illagerAllies` (which dereferences at @8, `Entity.getTeam()`) | 7 | NPE inside the helper |
-| actually null-checks the argument (`AbstractEnderling`) | 1 | returns false, no crash (mixin kept as future insurance) |
-
-In other words: **upstream has not fixed this on 1.21.1, and all 19 guards are warranted.**
-
-There is also a **release-metadata validator** using spec-compliant parsers (Python's stdlib `tomllib` for TOML, `json` for JSON):
-
-```powershell
-python .\tools\validate_metadata.py .\dist\goetyownedfix-2.0.0-neoforge-1.21.1.jar 2.0.0
-```
-
-It verifies that `neoforge.mods.toml` parses as TOML, that `modLoader` / `loaderVersion` / `[[mixins]]` / `[[mods]]` (modId, version, displayName, description, authors, license, logoFile) are all present, that the three dependencies carry valid types and version ranges, that the manifest `MixinConfigs` entries exist in the jar, that every mixin class listed in the config is packaged, and finally prints the artifact size with its SHA-256/SHA-1.
-
-Exact dependency versions, sources and reproduction steps are in `BUILD-MANIFEST.md`.
+Before shipping, run `.\verify.ps1 -Audit` (target classes and descriptors + coverage) and `python .\tools\validate_metadata.py <jar> 2.0.0` (TOML/JSON metadata). Exact dependency versions, sources and reproduction steps are in `BUILD-MANIFEST.md`.
 
 ## Version history
 
