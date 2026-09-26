@@ -75,6 +75,8 @@ Requires **JDK 21** (NeoForge 1.21.1 and Goety 3.1.5.1 are Java 21 bytecode; thi
 .\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.0.0
 ```
 
+Entry timestamps of the staged files are pinned to `SOURCE_DATE_EPOCH` (default `1790432400` = 2026-09-26T14:20:00Z), so a rebuild from the same sources is **byte-identical**. A different epoch yields an equivalent jar with a different hash, so only one parameter set should be advertised per release.
+
 Classpath jars (read from `..\_mc1211_tools\deps\`, falling back to the local launcher library folder):
 
 | jar | Purpose |
@@ -99,10 +101,22 @@ Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goety
 6. coverage: how many of Goety's `isAlliedTo(Entity)` overrides are guarded (currently **19/19**).
 
 ```powershell
-.\verify.ps1
+.\verify.ps1            # target classes/descriptors + coverage
+.\verify.ps1 -Audit     # plus a bytecode audit proving the bug still exists in 3.1.5.1
 ```
 
-A second, **release-metadata validator** checks the packaged jar with spec-compliant parsers (Python's stdlib `tomllib` for TOML, `json` for JSON):
+The **bytecode audit** (`tools/audit_allied.py`, `tools/bytecode_probe.py`) disassembles all 19 `isAlliedTo` overrides plus the `MobUtil` helpers in Goety 3.1.5.1 and decides whether a null argument can reach a dereference. Current result (details in `GOETY-3.1.5.1-AUDIT.md`):
+
+| Class | Count | Consequence for a null argument |
+| --- | --- | --- |
+| dereferences the argument directly (e.g. `Apostle`'s very first instruction is `Entity.getType()`) | 8 | immediate NPE |
+| passes through to super, ending in vanilla `Entity.isAlliedTo` (a 9-byte body with zero null checks) | 3 | NPE in vanilla |
+| delegates to `MobUtil.illagerAllies` (which dereferences at @8, `Entity.getTeam()`) | 7 | NPE inside the helper |
+| actually null-checks the argument (`AbstractEnderling`) | 1 | returns false, no crash (mixin kept as future insurance) |
+
+In other words: **upstream has not fixed this on 1.21.1, and all 19 guards are warranted.**
+
+There is also a **release-metadata validator** using spec-compliant parsers (Python's stdlib `tomllib` for TOML, `json` for JSON):
 
 ```powershell
 python .\tools\validate_metadata.py .\dist\goetyownedfix-2.0.0-neoforge-1.21.1.jar 2.0.0

@@ -6,7 +6,8 @@
 
 param(
     [string]$Jar = '',
-    [string]$ToolsDir = (Join-Path (Split-Path -Parent $PSScriptRoot) '_mc1211_tools')
+    [string]$ToolsDir = (Join-Path (Split-Path -Parent $PSScriptRoot) '_mc1211_tools'),
+    [switch]$Audit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,4 +37,15 @@ if (-not $python) { throw 'Python 3 is required for verification.' }
 
 Write-Host "verifying: $Jar"
 & $python $verifier $Jar $goety $client $ToolsDir
-exit $LASTEXITCODE
+$rc = $LASTEXITCODE
+
+if ($Audit) {
+    $auditor = Join-Path $root 'tools\audit_allied.py'
+    if (-not (Test-Path $auditor)) { throw "Missing auditor: $auditor" }
+    Write-Host ''
+    Write-Host '--- bytecode audit: does Goety 3.1.5.1 still deref a null argument? ---'
+    & $python $auditor $goety
+    if ($LASTEXITCODE -ne 0) { $rc = $LASTEXITCODE }
+}
+
+exit $rc

@@ -75,6 +75,8 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体（非
 .\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.0.0
 ```
 
+打包时会把暂存文件的**时间戳固定**到 `SOURCE_DATE_EPOCH`（默认 `1790432400` = 2026-09-26T14:20:00Z），因此同源重建产物**字节级一致**；换个 epoch 会得到内容等价但哈希不同的产物，发布时请只声明一种参数。
+
 需要的 classpath jar（默认从 `..\_mc1211_tools\deps\` 读取，缺失时回退到本机启动器库目录）：
 
 | jar | 用途 |
@@ -99,8 +101,20 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体（非
 6. 覆盖率统计：Goety 中重写 `isAlliedTo(Entity)` 的类有多少个被本补丁覆盖（当前 **19/19**）。
 
 ```powershell
-.\verify.ps1
+.\verify.ps1            # 目标类/描述符 + 覆盖率
+.\verify.ps1 -Audit     # 额外做字节码审计：证明 Goety 3.1.5.1 里的 bug 依然存在
 ```
+
+**字节码级审计**（`tools/audit_allied.py`、`tools/bytecode_probe.py`）会反汇编 Goety 3.1.5.1 里全部 19 个 `isAlliedTo` 重写与 `MobUtil` 辅助方法，判定**参数为 null 时是否会被解引用**。当前结论（详见 `GOETY-3.1.5.1-AUDIT.md`）：
+
+| 分类 | 数量 | 后果 |
+| --- | --- | --- |
+| 直接解引用参数（如 `Apostle` 第 1 条指令就是 `Entity.getType()`） | 8 | 参数为 null 立即 NPE |
+| 透传给 super（最终落到原版 `Entity.isAlliedTo`，其方法体仅 9 字节且零判空） | 3 | 在原版处 NPE |
+| 交给 `MobUtil.illagerAllies`（其 @8 处 `Entity.getTeam()`） | 7 | 在工具方法内 NPE |
+| 参数被真正判空（`AbstractEnderling`） | 1 | 返回 false，不崩（保留 mixin 作为未来保险） |
+
+也就是说：**官方在 1.21.1 上没有修这个问题，19 个类的防护全部有必要。**
 
 另有一个**发布元数据校验**脚本，用规范级解析器检查打包结果（TOML 用 Python 标准库 `tomllib`，JSON 用 `json`）：
 

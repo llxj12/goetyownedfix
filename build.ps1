@@ -16,7 +16,9 @@ param(
     [string]$Javac = '',
     [string]$Jar = '',
     [string]$ToolsDir = (Join-Path (Split-Path -Parent $PSScriptRoot) '_mc1211_tools'),
-    [string]$Version = '2.0.0'
+    [string]$Version = '2.0.0',
+    # fixed timestamp for reproducible jars; 2026-09-26T17:00:00Z by default
+    [long]$SourceDateEpoch = 1790432400
 )
 
 $ErrorActionPreference = 'Stop'
@@ -87,8 +89,24 @@ $manifestPath = Join-Path $root 'build\MANIFEST.MF'
     'MixinConfigs: mixins.goetyfix.json'
 ) -join "`r`n" | Set-Content -Path $manifestPath -Encoding ASCII
 
+# Reproducible build: pin every staged file's timestamp to a fixed instant so the
+# jar's entry timestamps (and therefore its SHA-256) do not change per build.
+# Override with -SourceDateEpoch <unix seconds>.
+$stamp = [System.DateTimeOffset]::FromUnixTimeSeconds($SourceDateEpoch).UtcDateTime
+Get-ChildItem $stage -Recurse -Force | ForEach-Object {
+    $_.LastWriteTimeUtc = $stamp
+    $_.CreationTimeUtc = $stamp
+}
+(Get-Item $stage).LastWriteTimeUtc = $stamp
+(Get-Item $stage).CreationTimeUtc = $stamp
+$env:SOURCE_DATE_EPOCH = "$SourceDateEpoch"
+Write-Host ("pinned timestamps to {0} (SOURCE_DATE_EPOCH={1})" -f $stamp.ToString('u'), $SourceDateEpoch)
+
 $jarName = "goetyownedfix-$Version-neoforge-1.21.1.jar"
 $outJar = Join-Path $dist $jarName
 & $jarExe --create --file $outJar --manifest $manifestPath -C $stage .
 if ($LASTEXITCODE -ne 0) { throw "jar failed with exit code $LASTEXITCODE" }
+Remove-Item Env:\SOURCE_DATE_EPOCH -ErrorAction SilentlyContinue
+$sha = (Get-FileHash $outJar -Algorithm SHA256).Hash.ToLower()
 Write-Host "built: $outJar ($((Get-Item $outJar).Length) bytes)"
+Write-Host "sha256: $sha"

@@ -8,8 +8,8 @@
 | --- | --- |
 | 文件 | `dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar` |
 | 大小 | 31634 字节 |
-| SHA-256 | `4c6b086b04b985e828cbd883d1854e8773b93bacea34159598c2fc807bb5a25d` |
-| SHA-1 | `1650712df7dcad4af45cba16ee38eac4dcd3d879` |
+| SHA-256 | `e9b97ee0551868c2de240a59eb24d9e3baf8becd8bdd413fa860607759273a29` |
+| SHA-1 | `4f6f36446355cb7fa0cb3465f71fcbab8e2892f8` |
 | 字节码 | Java 17（`javac --release 17`，JDK 21 编译） |
 | 内容 | 22 个类（1 个 Mod 主类 + 21 个 mixin）、`mixins.goetyfix.json`、`META-INF/neoforge.mods.toml`、图标 |
 
@@ -55,4 +55,8 @@ javac -encoding UTF-8 -proc:none --release 17 -nowarn \
 python tools\validate_metadata.py dist\goetyownedfix-2.0.0-neoforge-1.21.1.jar 2.0.0
 ```
 
-`build.ps1` 使用 `jar --create`（不带 `--date`），因此同源重建产物**字节级可复现**（本次两次构建哈希一致）。
+`build.ps1` 在打包前会把暂存目录里所有文件的时间戳**固定**到 `SOURCE_DATE_EPOCH`（默认 `1790432400` = 2026-09-26T14:20:00Z），因此 jar 内条目时间戳不再随构建时间变化，**同源重建产物字节级一致**（已实测连续两次构建 SHA-256 相同：`e9b97ee0…`）。
+
+> 注：早期版本未固定时间戳，每次构建的 SHA-256 都不同（内容相同、仅条目时间戳不同）。若你要核对旧哈希，请以本文件当前值为准。
+>
+> 更换 `SOURCE_DATE_EPOCH` 会得到不同哈希但内容等价的产物；发布时请**只声明一种**构建参数。

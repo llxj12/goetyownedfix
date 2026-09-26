@@ -9,12 +9,12 @@ dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar
 | 项 | 值 |
 | --- | --- |
 | 大小 | 31634 字节 |
-| SHA-256 | `4c6b086b04b985e828cbd883d1854e8773b93bacea34159598c2fc807bb5a25d` |
-| SHA-1 | `1650712df7dcad4af45cba16ee38eac4dcd3d879` |
+| SHA-256 | `e9b97ee0551868c2de240a59eb24d9e3baf8becd8bdd413fa860607759273a29` |
+| SHA-1 | `4f6f36446355cb7fa0cb3465f71fcbab8e2892f8` |
 
-构建：`.\build.ps1`（同源重建字节级可复现）
-验证：`.\verify.ps1`（目标类/描述符 + 19/19 覆盖率）· `python tools\validate_metadata.py <jar> 2.0.0`（TOML/JSON/元数据）
-依赖与复现细节见 `BUILD-MANIFEST.md`。
+构建：`.\build.ps1`（条目时间戳固定到 `SOURCE_DATE_EPOCH`，同源重建字节级一致）
+验证：`.\verify.ps1 -Audit`（目标类/描述符 + 覆盖率 + 字节码审计）· `python tools\validate_metadata.py <jar> 2.0.0`（TOML/JSON/元数据）
+依赖与复现细节见 `BUILD-MANIFEST.md`，bug 存在性证据见 `GOETY-3.1.5.1-AUDIT.md`。
 
 ## 发布前检查清单
 
@@ -22,7 +22,8 @@ dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar
 - [x] jar 结构正确：`META-INF/neoforge.mods.toml`、`META-INF/MANIFEST.MF`(MixinConfigs)、`mixins.goetyfix.json`、图标
 - [x] 静态验证：21 个 mixin（19 Goety + Entity + MobUtil）目标类与方法描述符全部命中 Goety 3.1.5.1，覆盖率 19/19
 - [x] 元数据验证：TOML 用规范级解析器（tomllib）解析通过；`[[mixins]]` 声明、modId/版本/logoFile/三个依赖、版本区间语法全部校验通过
-- [x] 构建可复现：两次独立构建产物 SHA-256 一致
+- [x] **字节码审计**：证明 bug 在 3.1.5.1 中依然存在（8 个类直接解引用参数、3 个透传原版、7 个经 `MobUtil.illagerAllies`；原版 `Entity.isAlliedTo` 方法体仅 9 字节且零判空）
+- [x] 构建可复现：条目时间戳固定后，连续两次构建 SHA-256 一致
 - [ ] **实机验证（尚未做）**：需要 NeoForge 1.21.1 + Goety 3.1.5.1 的游戏实例
   - 验证方法：进入游戏后打开 `logs/debug.log`，搜索 `goetyfix`，应看到 21 行
     `Mixing XxxAlliedGuardMixin from mixins.goetyfix.json into ...`
@@ -54,7 +55,8 @@ dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar
 - 保留 `MobUtil.illagerAllies` 工具类空判断防护
 - 元数据迁移为 `META-INF/neoforge.mods.toml`，并新增 `[[mixins]] config=` 声明（NeoForge 1.21.x 的 mixin 配置加载路径）
 - 依赖声明改为 `neoforge >= 21.1` / `minecraft [1.21.1,1.21.2)` / `goety >= 3.1.5`
-- 新增 `build.ps1`（一键编译打包）与 `verify.ps1`（不开游戏的目标类/方法描述符静态校验，含覆盖率统计）
+- 新增 `build.ps1`（一键编译打包，条目时间戳固定以保证可复现）与 `verify.ps1`（不开游戏的目标类/方法描述符静态校验，含覆盖率统计），并附字节码审计工具 `tools/audit_allied.py` / `tools/bytecode_probe.py`
+- 新增 `GOETY-3.1.5.1-AUDIT.md`：逐类字节码证据，证明 3.1.5.1 中该 bug 依然存在（8 类直接解引用参数、3 类透传原版、7 类经 `MobUtil.illagerAllies`、1 类已安全）
 - **未包含** RevelationFix `HereticServant` 守卫：RevelationFix 暂无 1.21.1 版本；若后续发布，可照 1.20.1 分支的写法加回
 
 ## 已知限制
