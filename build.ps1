@@ -83,22 +83,42 @@ New-Item -ItemType Directory -Path $stage -Force | Out-Null
 Copy-Item (Join-Path $build '*') -Destination $stage -Recurse -Force
 Copy-Item (Join-Path $root 'src\main\resources\*') -Destination $stage -Recurse -Force
 
+# Normalize text resources to LF. The checkout uses core.autocrlf=true, so the
+# working tree holds CRLF while git stores LF; without this step the jar differs
+# by 12 bytes (and a different SHA-256) depending on how the tree was checked out.
+foreach ($f in Get-ChildItem $stage -Recurse -File -Include '*.json', '*.toml', '*.mcmeta') {
+    $text = [System.IO.File]::ReadAllText($f.FullName)
+    $lf = $text -replace "`r`n", "`n"
+    if ($lf -ne $text) {
+        [System.IO.File]::WriteAllText($f.FullName, $lf, (New-Object System.Text.UTF8Encoding($false)))
+        Write-Host "normalized line endings to LF: $($f.Name)"
+    }
+}
+
 $manifestPath = Join-Path $root 'build\MANIFEST.MF'
 @(
     'Manifest-Version: 1.0',
     'MixinConfigs: mixins.goetyfix.json'
 ) -join "`r`n" | Set-Content -Path $manifestPath -Encoding ASCII
 
-# Reproducible build: pin every staged file's timestamp to a fixed instant so the
-# jar's entry timestamps (and therefore its SHA-256) do not change per build.
-# Override with -SourceDateEpoch <unix seconds>.
+# Reproducible build: pin the timestamp of every staged file (the generated
+# MANIFEST.MF and the build\classes output included) to one fixed instant, so the
+# jar's entry timestamps - and therefore its SHA-256 - do not change per build.
+# Override with -SourceDateEpoch <unix seconds>. Directories are pinned last,
+# because writing files into them refreshes their timestamps.
 $stamp = [System.DateTimeOffset]::FromUnixTimeSeconds($SourceDateEpoch).UtcDateTime
+$manifestPath | ForEach-Object { [System.IO.File]::SetLastWriteTimeUtc($_, $stamp) }
 Get-ChildItem $stage -Recurse -Force | ForEach-Object {
-    $_.LastWriteTimeUtc = $stamp
-    $_.CreationTimeUtc = $stamp
+    if ($_.PSIsContainer) {
+        [System.IO.Directory]::SetLastWriteTimeUtc($_.FullName, $stamp)
+        [System.IO.Directory]::SetCreationTimeUtc($_.FullName, $stamp)
+    } else {
+        [System.IO.File]::SetLastWriteTimeUtc($_.FullName, $stamp)
+        [System.IO.File]::SetCreationTimeUtc($_.FullName, $stamp)
+    }
 }
-(Get-Item $stage).LastWriteTimeUtc = $stamp
-(Get-Item $stage).CreationTimeUtc = $stamp
+[System.IO.Directory]::SetLastWriteTimeUtc($stage, $stamp)
+[System.IO.Directory]::SetCreationTimeUtc($stage, $stamp)
 $env:SOURCE_DATE_EPOCH = "$SourceDateEpoch"
 Write-Host ("pinned timestamps to {0} (SOURCE_DATE_EPOCH={1})" -f $stamp.ToString('u'), $SourceDateEpoch)
 
