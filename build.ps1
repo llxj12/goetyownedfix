@@ -10,13 +10,13 @@
 #   .\build.ps1                 # uses ..\_mc1211_tools\jdk\...\bin\javac.exe if present, else PATH javac
 #   .\build.ps1 -Javac "C:\path\to\javac.exe"
 #
-# Output: dist\goetyownedfix-2.0.0-neoforge-1.21.1.jar
+# Output: dist\goetyownedfix-2.0.1-neoforge-1.21.1.jar
 
 param(
     [string]$Javac = '',
     [string]$Jar = '',
     [string]$ToolsDir = (Join-Path (Split-Path -Parent $PSScriptRoot) '_mc1211_tools'),
-    [string]$Version = '2.0.0',
+    [string]$Version = '2.0.1',
     # fixed timestamp for reproducible jars; 2026-09-26T17:00:00Z by default
     [long]$SourceDateEpoch = 1790432400
 )

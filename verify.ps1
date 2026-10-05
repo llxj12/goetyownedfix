@@ -2,7 +2,7 @@
 #
 # Usage:
 #   .\verify.ps1
-#   .\verify.ps1 -Jar dist\goetyownedfix-2.0.0-neoforge-1.21.1.jar
+#   .\verify.ps1 -Jar dist\goetyownedfix-2.0.1-neoforge-1.21.1.jar
 
 param(
     [string]$Jar = '',

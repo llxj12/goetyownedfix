@@ -25,7 +25,7 @@ Several Goety entity classes override `isAlliedTo(Entity)`. When the target AI `
 
 A scan of **all 3090 Goety classes in Goety 3.1.5.1 (the NeoForge 1.21.1 port)** shows **19 classes override `isAlliedTo(Entity)`, all of them sharing the same hazard**.
 
-## Fix (v2.0.0)
+## Fix (v2.0.1)
 
 A null check is injected at the `isAlliedTo` entry point of all 19 overriding classes (a null argument returns `false`), plus two extra safety nets:
 
@@ -38,7 +38,8 @@ A null entity can never be an ally, so returning `false` is safe and correct; **
 ## Installation
 
 - Requires **NeoForge 1.21.1 (21.1.x)** and **Goety 3.1.5+ (1.21.1 port)**
-- Drop `dist/goetyownedfix-2.0.0-neoforge-1.21.1.jar` into your `mods` folder
+- Drop `dist/goetyownedfix-2.0.1-neoforge-1.21.1.jar` into your `mods` folder
+- Since 2.0.1 the modId is `goetyownedfix` (was `goetyfix` in v2.0.0); just replace the old jar, saves are unaffected
 - Install on **both client and server** (for a single-player world, the machine hosting the world)
 
 ## Compatibility
@@ -59,7 +60,7 @@ Requires **JDK 21** (NeoForge 1.21.1 and Goety 3.1.5.1 are Java 21 bytecode; thi
 
 ```powershell
 .\build.ps1                    # finds the toolchain and packs dist\
-.\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.0.0
+.\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.0.1
 ```
 
 Entry timestamps of the staged files are pinned to `SOURCE_DATE_EPOCH` (default `1790432400` = 2026-09-26T14:20:00Z), so a rebuild from the same sources is **byte-identical**. A different epoch yields an equivalent jar with a different hash, so only one parameter set should be advertised per release.
@@ -74,10 +75,11 @@ Classpath jars (read from `..\_mc1211_tools\deps\`, falling back to the local la
 | `loader-4.0.42.jar` | FancyModLoader, provides the `@Mod` annotation |
 | `goety-3.1.5.1.jar` | the mixin target (Goety 1.21.1 port) |
 
-Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyfix.json`, and the jar must contain `META-INF/neoforge.mods.toml` and `mixins.goetyfix.json` (a 1.21.1 mod jar does not need `pack.mcmeta`).
+Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyownedfix.json`, and the jar must contain `META-INF/neoforge.mods.toml` and `mixins.goetyfix.json` (a 1.21.1 mod jar does not need `pack.mcmeta`).
 
 ## Version history
 
+- **2.0.1**: **modId changed from `goetyfix` to `goetyownedfix`** (mixin config renamed to `mixins.goetyownedfix.json`) — resolves the conflict with the `goetyfix` modId used by the Goety Fix memory-leak mod; also fixes the build script leaving a stale config in `build\stage`
 - **2.0.0**: ported to Minecraft 1.21.1 / NeoForge; covers all 19 `isAlliedTo` overrides in Goety 3.1.5.1 + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft-mode crash resistance
 
 ## License
