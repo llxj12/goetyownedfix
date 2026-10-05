@@ -67,7 +67,7 @@ foreach ($e in $resolved) { Write-Host ("  cp: {0} ({1:N1} MB)" -f (Split-Path $
 
 $build = Join-Path $root 'build\classes'
 $dist = Join-Path $root 'dist'
-Remove-Item $build, $dist -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $root 'build'), $dist -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $build, $dist -Force | Out-Null
 
 $sources = Get-ChildItem (Join-Path $root 'src\main\java') -Recurse -Filter '*.java' | ForEach-Object { $_.FullName }
@@ -98,7 +98,7 @@ foreach ($f in Get-ChildItem $stage -Recurse -File -Include '*.json', '*.toml', 
 $manifestPath = Join-Path $root 'build\MANIFEST.MF'
 @(
     'Manifest-Version: 1.0',
-    'MixinConfigs: mixins.goetyfix.json'
+    'MixinConfigs: mixins.goetyownedfix.json'
 ) -join "`r`n" | Set-Content -Path $manifestPath -Encoding ASCII
 
 # Reproducible build: pin the timestamp of every staged file (the generated

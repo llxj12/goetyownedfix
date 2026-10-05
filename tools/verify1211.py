@@ -5,7 +5,7 @@ Checks, without launching the game:
      jar or the Minecraft/NeoForge client jar;
   2. each Goety target really declares isAlliedTo(Entity) (the injected method),
      and MobUtil declares illagerAllies(Entity, Entity);
-  3. every mixin class listed in mixins.goetyfix.json is present in the jar, and
+  3. every mixin class listed in mixins.goetyownedfix.json is present in the jar, and
      every mixin class in the jar is listed in the config;
   4. each mixin's injected method name/descriptor matches the target;
   5. neoforge.mods.toml is well formed enough for NeoForge (modId/version/
@@ -149,17 +149,17 @@ def main():
 
     # 6. manifest
     manifest = pz.read('META-INF/MANIFEST.MF').decode('utf-8', 'replace')
-    if 'MixinConfigs: mixins.goetyfix.json' in manifest.replace('\r\n', '\n'):
-        ok('manifest declares MixinConfigs: mixins.goetyfix.json')
+    if 'MixinConfigs: mixins.goetyownedfix.json' in manifest.replace('\r\n', '\n'):
+        ok('manifest declares MixinConfigs: mixins.goetyownedfix.json')
     else:
         fail('manifest missing MixinConfigs attribute')
 
     # 3. config listing
-    cfg = json.loads(pz.read('mixins.goetyfix.json').decode('utf-8'))
+    cfg = json.loads(pz.read('mixins.goetyownedfix.json').decode('utf-8'))
     listed = set(cfg.get('mixins', []))
     in_jar = {os.path.basename(n)[:-6] for n in pnames if '/mixin/' in n}
     if listed == in_jar:
-        ok('mixins.goetyfix.json lists exactly the %d mixin classes in the jar' % len(listed))
+        ok('mixins.goetyownedfix.json lists exactly the %d mixin classes in the jar' % len(listed))
     else:
         fail('config/jar mismatch: only-in-config=%s only-in-jar=%s' % (sorted(listed - in_jar), sorted(in_jar - listed)))
     if cfg.get('required') is False and cfg.get('injectors', {}).get('defaultRequire') == 0:
@@ -169,12 +169,12 @@ def main():
 
     # 5. metadata
     toml = pz.read('META-INF/neoforge.mods.toml').decode('utf-8')
-    if re.search(r'\[\[mixins\]\]\s*\n\s*config\s*=\s*"mixins\.goetyfix\.json"', toml):
+    if re.search(r'\[\[mixins\]\]\s*\n\s*config\s*=\s*"mixins\.goetyownedfix\.json"', toml):
         ok('neoforge.mods.toml declares [[mixins]] config (NeoForge 1.21.x loader path)')
     else:
         fail('neoforge.mods.toml missing [[mixins]] config declaration')
-    if 'modId="goetyfix"' in toml:
-        ok('neoforge.mods.toml declares modId=goetyfix')
+    if 'modId="goetyownedfix"' in toml:
+        ok('neoforge.mods.toml declares modId=goetyownedfix')
     else:
         fail('neoforge.mods.toml missing modId')
     m = re.search(r'version="([^"]+)"', toml)

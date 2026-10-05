@@ -21,7 +21,7 @@ import net.neoforged.fml.common.Mod;
  *
  * Mixin-only: contains no Goety code.
  */
-@Mod("goetyfix")
+@Mod("goetyownedfix")
 public class GoetyOwnedFixMod {
 
     public GoetyOwnedFixMod() {
