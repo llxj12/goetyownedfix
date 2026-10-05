@@ -35,7 +35,7 @@ Multiple Goety entity classes override `isAlliedTo` (SRG: `m_7307_`). When the t
 - Vanilla 1.20.1 `Entity.isAlliedTo` performs **no null check** on the argument and calls `p.getTeam()` directly → NPE (Entity.java:2236);
 - Some Goety overrides (e.g. `Apostle`) dereference the argument (`entityIn.getType()`, Apostle.java:399) **before** calling super → also NPE.
 
-After scanning every entity class in Goety 2.5.56.x / 2.5.57.0, **19 classes override `isAlliedTo`, and all of them share this hazard** (three patterns: direct dereference / pass-through to vanilla / via the `MobUtil.illagerAllies` helper).
+After scanning the entity classes in Goety 2.5.49.3 / 2.5.55.4 / 2.5.56.x / 2.5.57.0 (905 classes checked exhaustively in 2.5.56.x), **19 classes override `isAlliedTo`, and all of them share this hazard** (three patterns: direct dereference / pass-through to vanilla / via the `MobUtil.illagerAllies` helper).
 
 ## What's Fixed (v1.1)
 

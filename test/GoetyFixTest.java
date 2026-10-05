@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 /**
  * Static/sandbox validation for goetyownedfix-1.1.0:
  *  1. mods.toml parsed with the SAME TOML parser Forge uses (night-config)
- *  2. mixins.goetyfix.json + pack.mcmeta parsed with gson (same as game)
+ *  2. mixins.goetyownedfix.json + pack.mcmeta parsed with gson (same as game)
  *  3. every class in the patch jar loads, and every @Mixin annotation
  *     resolves its target class (forces linking against goety/vanilla types)
  */
@@ -60,12 +60,12 @@ public class GoetyFixTest {
         // 2. JSON - gson
         try {
             var root = JsonParser.parseReader(new FileReader(mixinsJson)).getAsJsonObject();
-            System.out.println("[JSON] mixins.goetyfix.json OK required=" + root.get("required").getAsBoolean()
+            System.out.println("[JSON] mixins.goetyownedfix.json OK required=" + root.get("required").getAsBoolean()
                 + " entries=" + root.getAsJsonArray("mixins").size()
                 + " defaultRequire=" + root.getAsJsonObject("injectors").get("defaultRequire").getAsInt());
         } catch (Throwable t) {
             failures++;
-            System.out.println("[JSON] mixins.goetyfix.json FAIL: " + t);
+            System.out.println("[JSON] mixins.goetyownedfix.json FAIL: " + t);
         }
         try {
             JsonParser.parseReader(new FileReader(packMcmeta)).getAsJsonObject();

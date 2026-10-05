@@ -35,7 +35,7 @@ Goety 的多个实体类重写了 `isAlliedTo(Entity)`（SRG: `m_7307_`）。当
 - 原版 1.20.1 `Entity.isAlliedTo` 对参数**不做空判断**，直接 `p.getTeam()` → NPE（Entity.java:2236）；
 - 部分 Goety 重写（如 `Apostle`）在调 super **之前**就解引用参数（`entityIn.getType()`，Apostle.java:399）→ 同样 NPE。
 
-经对 Goety 2.5.56.x / 2.5.57.0 全部 905 个实体类扫描，**重写 `isAlliedTo` 的类共 19 个，全部存在同类隐患**（直接解引用 / 透传 vanilla / 经 `MobUtil.illagerAllies` 工具类三种模式）。
+经对 Goety 2.5.49.3 / 2.5.55.4 / 2.5.56.x / 2.5.57.0 的实体类扫描（2.5.56.x 全量 905 个逐一核对），**重写 `isAlliedTo` 的类共 19 个，全部存在同类隐患**（直接解引用 / 透传 vanilla / 经 `MobUtil.illagerAllies` 工具类三种模式）。
 
 ## 修复方式（v1.1）
 
