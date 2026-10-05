@@ -2,9 +2,9 @@
 
 [English README](README_EN.md)
 
-> **本分支是 Forge 1.20.1 版。**
-> 如果你玩的是 **Minecraft 1.21.1（NeoForge）**，请到 [Releases 下载 v2.0.0](https://github.com/llxj12/goetyownedfix/releases/tag/v2.0.0)，源码在 `neoforge-1.21.1` 分支。
-> 两个版本的 modId 都是 `goetyfix`，**不要同时安装**。
+> **本分支是 Forge 1.20.1 版（v1.1.2 起 modId 为 `goetyownedfix`）。**
+> 如果你玩的是 **Minecraft 1.21.1（NeoForge）**，请到 [Releases](https://github.com/llxj12/goetyownedfix/releases) 下载对应版本，源码在 `neoforge-1.21.1` 分支。
+> 两者面向不同游戏版本，按需择一安装；本 mod 与 modId 为 `goetyfix` 的「Goety Fix」内存修复 mod **可以同时安装**（1.1.2 起已实测共存）。
 
 一个 Forge 1.20.1 迷你补丁，修复 **诡厄巫法 (Goety) 的 `isAlliedTo` 空指针崩溃家族**。
 

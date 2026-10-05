@@ -2,9 +2,9 @@
 
 [中文版 Chinese](README.md)
 
-> **This branch is the Forge 1.20.1 build.**
-> Playing **Minecraft 1.21.1 (NeoForge)**? Grab [v2.0.0 from Releases](https://github.com/llxj12/goetyownedfix/releases/tag/v2.0.0); the sources live on the `neoforge-1.21.1` branch.
-> Both builds use the modId `goetyfix` — **do not install them together**.
+> **This branch is the Forge 1.20.1 build (modId `goetyownedfix` since v1.1.2).**
+> Playing **Minecraft 1.21.1 (NeoForge)**? Grab the matching release from [Releases](https://github.com/llxj12/goetyownedfix/releases); the sources live on the `neoforge-1.21.1` branch.
+> The two builds target different game versions — pick one. This mod **can be installed alongside the "Goety Fix" memory-leak mod** (which uses the modId `goetyfix`), verified in-game since 1.1.2.
 
 A minimal Forge 1.20.1 patch mod that fixes the **`isAlliedTo` NullPointerException crash family** in **Goety**.
 
