@@ -3,7 +3,7 @@ package llxj.goetyfix;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * Goety Owned/Allies Null Guard Fix (v1.1.0)
+ * Goety Owned/Allies Null Guard Fix (v1.1.2)
  *
  * Fixes the recurring "Ticking entity" NullPointerException family caused by
  * Goety's isAlliedTo overrides receiving a null entity from
@@ -20,9 +20,14 @@ import net.minecraftforge.fml.common.Mod;
  * a null entity can never be an ally. Non-null arguments pass through
  * unchanged, so no normal game behavior is altered.
  *
+ * v1.1.2: modId is "goetyownedfix" (previously "goetyfix"), so this mod can
+ * be installed together with the unrelated "Goety Fix" memory-leak mod,
+ * which also uses the modId "goetyfix". The mixin config was renamed to
+ * mixins.goetyownedfix.json for the same reason.
+ *
  * The actual fixes live in the mixins under llxj.goetyfix.mixin
  */
-@Mod("goetyfix")
+@Mod("goetyownedfix")
 public class GoetyOwnedFixMod {
 
     public GoetyOwnedFixMod() {

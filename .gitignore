@@ -1,5 +1,5 @@
 # build output
-build211/
+build*/
 test/out/
 out/
 
@@ -9,6 +9,7 @@ out/
 .analysis/
 .verify/
 .verify2/
+.recon/
 
 # test run logs
 test/*.log

@@ -57,15 +57,15 @@ GoetyAwaken (4 classes) and GoetyLadder (1 class) overrides are pass-through imp
 
 ## Installation
 
-- Requires **Forge 1.20.1 (47.x)** + **Goety 2.5.56+** (verified on 2.5.57.0)
-- Drop the release jar (see Releases) into the `mods` folder (**replace the old goetyownedfix-1.0.0 / 1.1.0 — do not install both**)
+- Requires **Forge 1.20.1 (47.x)** + **Goety 2.5.49+** (all 22 patch targets verified on 2.5.49.3 / 2.5.55.4 / 2.5.57.0; real-machine tested on 2.5.55.4 and 2.5.57.0)
+- Drop the release jar (see Releases) into the `mods` folder (**replace the old goetyownedfix-1.0.0 / 1.1.0 / 1.1.1 — do not install both**)
 - Install on **both client and server** (for integrated servers, the machine hosting the save must have it)
 - Coexists with RevelationFix / Goety:Revelation / GoetyAwaken and other Goety addons without conflicts
 
 ## Crash Resistance
 
 - **Soft mode**: mixin config is `required=false` + `defaultRequire=0` — if a future Goety update removes a class or renames a method, the affected mixin is skipped with a warning log and **the game starts normally instead of crashing**. The vanilla `Entity.isAlliedTo` safety net always anchors to a method that exists in 1.20.1, so pass-through classes stay covered even if an individual class mixin goes stale.
-- **Dependency protection**: `mods.toml` declares goety as `mandatory=true` with `>=2.5.56` — installing it without Goety (or with an outdated Goety) makes FML refuse to load at startup with a clear error, instead of crashing later in-game.
+- **Dependency protection**: `mods.toml` declares goety as `mandatory=true` with `>=2.5.49` — installing it without Goety (or with an outdated Goety) makes FML refuse to load at startup with a clear error, instead of crashing later in-game.
 - **Conflict-free design**: all injections are additive `@Inject`s and never conflict with other mods' overrides.
 
 ## Compatibility
@@ -84,13 +84,19 @@ javac -encoding UTF-8 -proc:none -source 17 -target 17 \
   llxj/goetyfix/GoetyOwnedFixMod.java llxj/goetyfix/mixin/*.java
 ```
 
-When packaging: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyfix.json`, and `pack.mcmeta` (pack_format 15) must be present.
+When packaging: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyownedfix.json`, and `pack.mcmeta` (pack_format 15) must be present.
 
 ## Changelog
 
+- **1.1.2**: **modId changed from `goetyfix` to `goetyownedfix`** (mixin config renamed to `mixins.goetyownedfix.json`) — resolves a modId conflict with the unrelated "Goety Fix" memory-leak mod, so both can now load together; the Goety dependency floor was also lowered from 2.5.56 to **2.5.49** (all patch targets verified on 2.5.49.3 / 2.5.55.4)
 - **1.1.1**: added RevelationFix `HereticServant` caller-side entry guard (verified real-world crash path from a live crash report — double safety net)
 - **1.1.0**: all 19 `isAlliedTo` overrides + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft-mode crash resistance (fixes Apostle.java:399 and the rest of the family)
 - **1.0.0**: only `Owned.isAlliedTo` fixed
+
+## Coexistence with other mods
+
+- **Goety Fix (memory-leak fix)**: it uses the same modId `goetyfix`; since 1.1.2 this mod uses `goetyownedfix` instead, so both can be installed together (tested in-game on Goety 2.5.55.4: both mods load, both mixin configs apply, zero conflicts)
+- Coexists with RevelationFix / Goety:Revelation / GoetyAwaken / goety_ladder / goetygrae without conflicts
 
 ## License
 
