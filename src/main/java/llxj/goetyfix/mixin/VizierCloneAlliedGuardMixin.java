@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Returning false for a null argument is safe and correct: a null entity can
  * never be an ally. Non-null arguments pass through unchanged.
  *
- * Soft mode (mixins.goetyfix.json: required=false, defaultRequire=0) means a
+ * Soft mode (mixins.goetyownedfix.json: required=false, defaultRequire=0) means a
  * future Goety refactor that removes this class only skips the injection with a
  * warning instead of crashing the game.
  */

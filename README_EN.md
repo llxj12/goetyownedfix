@@ -75,7 +75,7 @@ Classpath jars (read from `..\_mc1211_tools\deps\`, falling back to the local la
 | `loader-4.0.42.jar` | FancyModLoader, provides the `@Mod` annotation |
 | `goety-3.1.5.1.jar` | the mixin target (Goety 1.21.1 port) |
 
-Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyownedfix.json`, and the jar must contain `META-INF/neoforge.mods.toml` and `mixins.goetyfix.json` (a 1.21.1 mod jar does not need `pack.mcmeta`).
+Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyownedfix.json`, and the jar must contain `META-INF/neoforge.mods.toml` and `mixins.goetyownedfix.json` (a 1.21.1 mod jar does not need `pack.mcmeta`).
 
 ## Version history
 

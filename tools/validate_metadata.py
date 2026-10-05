@@ -8,7 +8,7 @@ Checks:
     expects (modLoader, loaderVersion, [[mixins]], [[mods]] with modId/version,
     [[dependencies.<modid>]] entries with modId/type/versionRange/side)
   * the jar version matches the expected release version
-  * mixins.goetyfix.json parses as JSON with the required keys and no duplicates
+  * mixins.goetyownedfix.json parses as JSON with the required keys and no duplicates
   * the MixinConfigs manifest attribute points at an existing config in the jar
   * the mixin config declares a package whose classes all exist in the jar
   * every dependency versionRange is a syntactically valid Maven range
@@ -150,7 +150,7 @@ def main():
         fail('manifest has no MixinConfigs attribute')
 
     # ---------- mixin config ----------
-    cfg = json.loads(z.read('mixins.goetyfix.json').decode('utf-8'))
+    cfg = json.loads(z.read('mixins.goetyownedfix.json').decode('utf-8'))
     required_keys = ('required', 'minVersion', 'package', 'compatibilityLevel', 'mixins')
     for k in required_keys:
         if k not in cfg:
