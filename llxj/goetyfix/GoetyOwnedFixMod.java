@@ -3,10 +3,11 @@ package llxj.goetyfix;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * Goety Owned/Allies Null Guard Fix (v1.1.2)
+ * Goety Null Guard Fix (v1.2.0)
  *
- * Fixes the recurring "Ticking entity" NullPointerException family caused by
- * Goety's isAlliedTo overrides receiving a null entity from
+ * Fixes two recurring "Ticking entity" NullPointerException families.
+ *
+ * Family 1 - isAlliedTo: Goety's overrides receive a null entity from
  * HurtByTargetGoal.alertOthers (which forwards a cleared/absent
  * getLastHurtByMob() into isAlliedTo without a null check).
  *
@@ -24,6 +25,14 @@ import net.minecraftforge.fml.common.Mod;
  * be installed together with the unrelated "Goety Fix" memory-leak mod,
  * which also uses the modId "goetyfix". The mixin config was renamed to
  * mixins.goetyownedfix.json for the same reason.
+ *
+ * Family 2 (v1.2.0) - HellBlast: an ownerless HellBlast captures a null
+ * owner in its anonymous SpellExplosion subclass and sets it on fire from
+ * explodeHurt() while the explosion damages a living entity
+ * (HellBlast$1.explodeHurt -> HellBlast.java:177). The guard has to sit on
+ * that call site: SpellExplosion's constructor calls explodeHurt itself, so
+ * an @At("RETURN") guard there would never run (the merged
+ * hellblastfix 0.0.1 failure). Merged in from goetyhellblastfix 0.0.2.
  *
  * The actual fixes live in the mixins under llxj.goetyfix.mixin
  */

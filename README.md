@@ -2,11 +2,14 @@
 
 [English README](README_EN.md)
 
-> **本分支是 Forge 1.20.1 版（v1.1.2 起 modId 为 `goetyownedfix`）。**
+> **本分支是 Forge 1.20.1 版（v1.1.2 起 modId 为 `goetyownedfix`；v1.2.0 起已合并原 `goetyhellblastfix` 的狱焰修复，不再需要单独安装它）。**
 > 如果你玩的是 **Minecraft 1.21.1（NeoForge）**，请到 [Releases](https://github.com/llxj12/goetyownedfix/releases) 下载对应版本，源码在 `neoforge-1.21.1` 分支。
 > 两者面向不同游戏版本，按需择一安装；本 mod 与 modId 为 `goetyfix` 的「Goety Fix」内存修复 mod **可以同时安装**（1.1.2 起已实测共存）。
 
-一个 Forge 1.20.1 迷你补丁，修复 **诡厄巫法 (Goety) 的 `isAlliedTo` 空指针崩溃家族**。
+一个 Forge 1.20.1 迷你补丁，修复诡厄巫法 (Goety) 的**两类 `Ticking entity` 空指针崩溃**：
+
+1. `isAlliedTo` 家族（v1.1.x）：召唤物受伤时目标 AI 把 null 传进 `isAlliedTo`；
+2. 狱焰 `HellBlast` 家族（v1.2.0，合并自 `goetyhellblastfix`）：**无主**狱焰爆炸时对 null 归属者调用点燃方法。
 
 ## 症状
 
@@ -54,10 +57,38 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体的判
 - GoetyAwaken、GoetyLadder、GoetyRevelation、goetygrae 等附属中重写 `isAlliedTo` 的类（Awaken 4 个 + Ladder 1 个）均为「透传 super」实现，最终会落到本补丁已覆盖的 Goety 类或原版 `Entity`，由兜底 mixin 自动覆盖。
 - **RevelationFix（v1.1.1）**：经真实崩溃日志核实，`HereticServant`（异教徒，RevelationFix 的类，通常经 GoetyRevelation 的 JarJar 内嵌加载）会把 null 透传进 Goety `Apostle.isAlliedTo` 导致 399 行崩溃——v1.1.1 已为 `HereticServant.m_7307_` 入口新增空判断（调用方侧兜底）。若未装 RevelationFix，软模式会自动跳过该 mixin，不影响使用。
 
+## 第二个缺陷：无主狱焰 HellBlast（v1.2.0，合并自 goetyhellblastfix）
+
+### 症状
+
+```
+Ticking entity
+java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.m_20254_(int)" because "this.val$entity" is null
+    at Goety...HellBlast$1.explodeHurt (HellBlast.java:177)
+    at Goety...SpellExplosion.<init> (SpellExplosion.java:72)
+    at Goety...HellBlast$1.<init> (HellBlast.java:171)
+    at Goety...HellBlast.m_6532_ (HellBlast.java:171)
+```
+
+触发条件：**狱焰没有归属者**（`/summon goety:hell_blast`、法术意外生成、发射者死亡/卸载区块导致 owner 丢失），且 `Fiery > 0`，且爆炸范围内**有生物被伤到**。炸空气、`Fiery = 0` 都不会触发，所以平时不一定暴露。
+
+### 原因
+
+`HellBlast.m_6532_` 把自己的 `getOwner()` 捕获进匿名爆炸类 `HellBlast$1`；`explodeHurt` 先结算爆炸伤害，随后对捕获的归属者调用 `setRemainingFireTicks`（`Entity.m_20254_`）。归属者为 null 时即 NPE，直接把服务端 tick 打崩。
+
+### 修复
+
+只重定向 `HellBlast$1.explodeHurt` 里**唯一一处** `Entity.m_20254_(I)`，归属者为 null 时跳过点燃；爆炸伤害与有主狱焰的行为完全不变。
+
+- **为什么不能挂在构造函数 `@At("RETURN")`**：`SpellExplosion` 构造函数内部（第 72 行）就会调用 `explodeHurt`，NPE 从构造函数里抛出，构造函数永远走不到 RETURN——这正是 `goetyhellblastfix` 0.0.1 失效的原因。
+- **为什么类名稳定**：真实崩溃栈里就是 `HellBlast$1`；被 mixin 改名的是其它 mod mixin 自己生成的匿名类（`Class$Anonymous$hash`），不是 Goety 的。
+- 调用点已逐版本核对一致：2.5.25.0 / 2.5.36.1 / 2.5.55.4 / 2.5.56.0 / 2.5.56.4 / 2.5.57.0 / **2.5.58.4**（1.21.1 的 3.1.5.1 使用 Mojang 名，不在本分支适用范围）。
+
 ## 安装
 
-- 需要 **Forge 1.20.1 (47.x)** + **Goety 2.5.49+**（22 个补丁目标已在 2.5.49.3 / 2.5.55.4 / 2.5.57.0 上逐一核对；实机验证于 2.5.55.4 与 2.5.57.0）
-- 把发布版 jar 丢进 `mods` 文件夹即可（**替换旧版 goetyownedfix-1.0.0 / 1.1.0 / 1.1.1，不要同时装**）
+- 需要 **Forge 1.20.1 (47.x)** + **Goety 2.5.49+**（23 个补丁目标已在 2.5.49.3 / 2.5.55.4 / 2.5.57.0 / 2.5.58.4 上逐一核对；实机验证于 2.5.55.4 与 2.5.57.0）
+- 把发布版 jar 丢进 `mods` 文件夹即可（**替换旧版 goetyownedfix-1.0.0 / 1.1.0 / 1.1.1 / 1.1.2，不要同时装**）
+- v1.2.0 已合并 `goetyhellblastfix`，**装过 `goetyhellblastfix-0.0.2.jar` 的请删掉它**，避免重复加载
 - 与 RevelationFix / Goety:Revelation / Goety 各附属共存，无冲突
 - 客户端和服务端**都要装**（集成服务器 = 开存档的那台机器必须装）
 
@@ -68,25 +99,32 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体的判
 
 ## 抗崩溃性说明
 
-- **软模式**：mixin 配置为 `required=false` + `defaultRequire=0`——若未来 Goety 更新导致某个类被删除/方法改名，对应的 mixin 会被**跳过并打警告日志，游戏照常启动**，而不是崩溃。原版 `Entity.isAlliedTo` 兜底始终锚定在 1.20.1 原版方法上（该方法永不缺席），透传类即使某个 per-class mixin 失效也仍被覆盖。
+- **软模式**：mixin 配置为 `required=false` + `defaultRequire=0`——若未来 Goety 更新导致某个类被删除/方法改名，对应的 mixin 会被**跳过并打警告日志，游戏照常启动**，而不是崩溃。原版 `Entity.isAlliedTo` 兜底始终锚定在 1.20.1 原版方法上（该方法永不缺席），透传类即使某个 per-class mixin 失效也仍被覆盖。狱焰重定向同理（`require = 0`），失效只打警告。
+- **软模式的代价**：注入成功与失败在游戏里表现一样。确认狱焰补丁是否生效，请在 `logs/debug.log` 里搜 `HellBlastExplosionNullGuardMixin`——没有 `Injection error` / `target was not found` 一类告警即为已生效。
 - **依赖保护**：`mods.toml` 中 goety 依赖为 `mandatory=true` 且要求 `>=2.5.49`——若误装在没有 Goety 或版本过低的整合包里，FML 会在**启动阶段**给出明确报错并拒绝加载（不会进游戏后莫名崩溃）。
-- **无冲突设计**：全部为 `@Inject` 叠加式注入，不与其它 mod 的重写冲突。
+- **无冲突设计**：全部为 `@Inject` / `@Redirect` 叠加式注入（不替换方法体），不与其它 mod 的重写冲突。
 
 ## 编译 / Build
 
-需要 JDK 17，并准备以下 jar 作为 classpath：
-`mixin-0.8.5.jar`、`javafmllanguage-1.20.1-47.4.22.jar`、`forge-1.20.1-47.4.22-universal.jar`、`client-1.20.1-...-srg.jar`、`goety-2.5.57.0.jar`（或对应的 2.5.56.x）
+需要 JDK 17，并备好 Forge 47.4.22 的库（脚本内已写死本机标准路径，可用参数覆盖）：
 
-```bash
-javac -encoding UTF-8 -proc:none -source 17 -target 17 \
-  -cp "<上述 jar 以分号连接>" -d out \
-  llxj/goetyfix/GoetyOwnedFixMod.java llxj/goetyfix/mixin/*.java
+```powershell
+# 版本号自动从 META-INF/mods.toml 读取，不会出现「文件名 1.1.0、元数据 0.0.2」这类漂移
+.\build.ps1
+
+# 指定其它 Goety 版本 / JDK：
+.\build.ps1 -GoetyJar '修改目标MOD\[诡厄巫法] goety-2.5.57.0.jar' -Jdk 'E:\.minecraft\jdk-17.0.18+8'
 ```
 
-打包时注意：jar 的 `META-INF/MANIFEST.MF` 必须包含 `MixinConfigs: mixins.goetyownedfix.json`，且包含 `pack.mcmeta`（pack_format 15）。
+脚本流程：`javac` 编译 `llxj/**/*.java` → 组装 `META-INF/MANIFEST.MF`（含 `MixinConfigs: mixins.goetyownedfix.json`）、`pack.mcmeta`、mixin 配置与 `mods.toml` → 输出根目录 `goetyownedfix-<版本>.jar` 并打印 SHA-256。
+
+编译 classpath 由脚本自动拼装，需要的原件是：`mixin-0.8.5.jar`、`javafmllanguage-1.20.1-47.4.22.jar`、`forge-1.20.1-47.4.22-universal.jar`、`client-1.20.1-...-srg.jar`，以及一个 1.20.1 的 goety jar（默认取 `修改目标MOD` 里最新的 2.x）。
+
+打包注意：jar 的 `META-INF/MANIFEST.MF` 必须包含 `MixinConfigs: mixins.goetyownedfix.json`，且包含 `pack.mcmeta`（pack_format 15）。
 
 ## 版本历史
 
+- **1.2.0**：合并 `goetyhellblastfix` 0.0.2 的狱焰修复（`HellBlast$1.explodeHurt` 空归属者守卫），补丁目标总数 23；新增 `build.ps1`（版本号从 `mods.toml` 读取，杜绝文件名与元数据版本漂移）
 - **1.1.2**：**modId 由 `goetyfix` 改为 `goetyownedfix`**（mixin 配置同步改名为 `mixins.goetyownedfix.json`）——解决与「Goety Fix」内存修复模组的 modId 冲突，两者现在可以同时加载；同时把 Goety 依赖下限从 2.5.56 放宽到 **2.5.49**（补丁目标已在 2.5.49.3 / 2.5.55.4 上逐一核对）
 - **1.1.1**：新增 RevelationFix `HereticServant` 调用方入口守卫（经群友真实崩溃日志核实为实际崩溃路径，双保险）
 - **1.1.0**：覆盖全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底 + `MobUtil.illagerAllies` 防护 + 软模式抗崩溃

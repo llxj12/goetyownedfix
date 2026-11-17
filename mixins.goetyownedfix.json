@@ -11,6 +11,7 @@
     "BroodMotherNullGuardMixin",
     "CultistNullGuardMixin",
     "EntityIsAlliedToNullGuardMixin",
+    "HellBlastExplosionNullGuardMixin",
     "HereticNullGuardMixin",
     "HereticServantNullGuardMixin",
     "HostileDrownedNecromancerNullGuardMixin",
