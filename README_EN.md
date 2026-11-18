@@ -49,6 +49,8 @@ Entry-level null guards are injected into **all 19 overrides** (a null argument 
 - vanilla `Entity` (safety net)
 - `MobUtil.illagerAllies` (the helper itself dereferences its arguments without a null check; guarded as well)
 - `HereticServant` (v1.1.1: RevelationFix's cultist — the verified real-world crash caller, see below)
+- `MaverickServant`, `ApostleServant` (v1.2.1: the other two RevelationFix servants with the same shape; `MaverickServant` is reachable through the inherited Cultist alertSameType goal, `ApostleServant` is currently unreachable and guarded defensively)
+- `IfritClone`, `MurmurServant`, `MurmurServantHead` (v1.2.1: entry guards for the optional goety_supreme / goetyominous add-ons; all three are currently unreachable and guarded defensively. They use string targets, so there is no compile-time add-on dependency — if an add-on is absent, soft mode only logs a warning)
 
 A null entity can never be an ally, so returning false is safe and correct; **checks on valid entities are completely unaffected — zero side effects**. Mixin-only, contains no Goety code.
 
@@ -56,7 +58,7 @@ A null entity can never be an ally, so returning false is safe and correct; **ch
 
 GoetyAwaken (4 classes) and GoetyLadder (1 class) overrides are pass-through implementations that resolve to already-guarded Goety classes or the vanilla `Entity` safety net — **no extra patches needed**. GoetyRevelation and goetygrae declare no overrides.
 
-**RevelationFix (v1.1.1)**: verified from a real crash report — `HereticServant` (the "异教徒" cultist, a RevelationFix class normally loaded via GoetyRevelation's JarJar bundle) forwards a null entity into Goety's `Apostle.isAlliedTo`, crashing at Apostle.java:399. v1.1.1 adds an entry guard on `HereticServant.m_7307_` (caller-side safety net). If RevelationFix is not installed, soft mode skips this mixin with a warning and the game still starts.
+**RevelationFix (v1.1.1)**: verified from a real crash report — `HereticServant` (the "异教徒" cultist, a RevelationFix class normally loaded via GoetyRevelation's JarJar bundle) forwards a null entity into Goety's `Apostle.isAlliedTo`, crashing at Apostle.java:399. v1.1.1 adds an entry guard on `HereticServant.m_7307_` (caller-side safety net). If RevelationFix is not installed, soft mode skips this mixin with a warning and the game still starts. v1.2.1 adds the same entry guard to the other two same-shaped classes, `MaverickServant` (reachable) and `ApostleServant` (currently unreachable).
 
 ## Second Defect: Ownerless HellBlast (v1.2.0, merged from goetyhellblastfix)
 
@@ -87,7 +89,7 @@ Redirects the **single** `Entity.m_20254_(I)` call in `HellBlast$1.explodeHurt` 
 
 ## Installation
 
-- Requires **Forge 1.20.1 (47.x)** + **Goety 2.5.49+** (all 23 patch targets verified on 2.5.49.3 / 2.5.55.4 / 2.5.57.0 / 2.5.58.4; real-machine tested on 2.5.55.4 and 2.5.57.0)
+- Requires **Forge 1.20.1 (47.x)** + **Goety 2.5.49+** (all 28 patch targets verified on 2.5.49.3 / 2.5.55.4 / 2.5.57.0 / 2.5.58.4; real-machine tested on 2.5.55.4 and 2.5.57.0)
 - Drop the release jar (see Releases) into the `mods` folder (**replace the old goetyownedfix-1.0.0 / 1.1.0 / 1.1.1 / 1.1.2 — do not install both**)
 - v1.2.0 already includes `goetyhellblastfix`: **delete `goetyhellblastfix-0.0.2.jar` if you had it installed**
 - Install on **both client and server** (for integrated servers, the machine hosting the save must have it)
@@ -125,6 +127,7 @@ When packaging: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goetyo
 
 ## Changelog
 
+- **1.2.1**: added entry guards for the other two same-shaped RevelationFix servants — `MaverickServant` (inherits the Cultist `HurtByTargetGoal` with alertSameType enabled, so the same NPE is reproducible) and `ApostleServant` (currently unreachable, guarded defensively); string-target guards were also added for the optional add-ons — `IfritClone` (goety_supreme) and `MurmurServant` / `MurmurServantHead` (goetyominous) — with no compile-time dependency and a warning-only skip when absent; 28 patch targets in total
 - **1.2.0**: merged the HellBlast fix from `goetyhellblastfix` 0.0.2 (null-owner guard in `HellBlast$1.explodeHurt`), 23 patch targets in total; added `build.ps1` (version read from `mods.toml`, no more file-name/metadata drift)
 - **1.1.2**: **modId changed from `goetyfix` to `goetyownedfix`** (mixin config renamed to `mixins.goetyownedfix.json`) — resolves a modId conflict with the unrelated "Goety Fix" memory-leak mod, so both can now load together; the Goety dependency floor was also lowered from 2.5.56 to **2.5.49** (all patch targets verified on 2.5.49.3 / 2.5.55.4)
 - **1.1.1**: added RevelationFix `HereticServant` caller-side entry guard (verified real-world crash path from a live crash report — double safety net)

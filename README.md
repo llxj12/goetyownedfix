@@ -49,13 +49,15 @@ Goety 的多个实体类重写了 `isAlliedTo(Entity)`（SRG: `m_7307_`）。当
 - 原版 `Entity`（兜底）
 - `MobUtil.illagerAllies`（工具类内部对参数无空判断，一并防护）
 - `HereticServant`（v1.1.1 新增：RevelationFix 的异教徒，实际崩溃调用方，见下）
+- `MaverickServant`、`ApostleServant`（v1.2.1 新增：RevelationFix 另外两个同构仆从，入口判空；`MaverickServant` 经 Cultist 的 alertSameType 目标可达，`ApostleServant` 当前不可达，属防御性对齐）
+- `IfritClone`、`MurmurServant`、`MurmurServantHead`（v1.2.1 新增：可选附属 goety_supreme / goetyominous 的入口判空；三者当前均不可达，属防御性对齐。用字符串 target 编写，不引入附属编译依赖，未安装时软模式只留一条告警）
 
 null 不可能是盟友，返回 false 安全且正确；**对有效实体的判断完全不受影响**，零副作用。mixin-only，不含任何 Goety 代码。
 
 ### 附属 mod 兼容性（已逐一扫描验证）
 
 - GoetyAwaken、GoetyLadder、GoetyRevelation、goetygrae 等附属中重写 `isAlliedTo` 的类（Awaken 4 个 + Ladder 1 个）均为「透传 super」实现，最终会落到本补丁已覆盖的 Goety 类或原版 `Entity`，由兜底 mixin 自动覆盖。
-- **RevelationFix（v1.1.1）**：经真实崩溃日志核实，`HereticServant`（异教徒，RevelationFix 的类，通常经 GoetyRevelation 的 JarJar 内嵌加载）会把 null 透传进 Goety `Apostle.isAlliedTo` 导致 399 行崩溃——v1.1.1 已为 `HereticServant.m_7307_` 入口新增空判断（调用方侧兜底）。若未装 RevelationFix，软模式会自动跳过该 mixin，不影响使用。
+- **RevelationFix（v1.1.1）**：经真实崩溃日志核实，`HereticServant`（异教徒，RevelationFix 的类，通常经 GoetyRevelation 的 JarJar 内嵌加载）会把 null 透传进 Goety `Apostle.isAlliedTo` 导致 399 行崩溃——v1.1.1 已为 `HereticServant.m_7307_` 入口新增空判断（调用方侧兜底）。若未装 RevelationFix，软模式会自动跳过该 mixin，不影响使用。v1.2.1 又对另外两个同构类 `MaverickServant`（可达）与 `ApostleServant`（暂不可达）加了同样的入口守卫。
 
 ## 第二个缺陷：无主狱焰 HellBlast（v1.2.0，合并自 goetyhellblastfix）
 
@@ -86,7 +88,7 @@ java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity
 
 ## 安装
 
-- 需要 **Forge 1.20.1 (47.x)** + **Goety 2.5.49+**（23 个补丁目标已在 2.5.49.3 / 2.5.55.4 / 2.5.57.0 / 2.5.58.4 上逐一核对；实机验证于 2.5.55.4 与 2.5.57.0）
+- 需要 **Forge 1.20.1 (47.x)** + **Goety 2.5.49+**（28 个补丁目标已在 2.5.49.3 / 2.5.55.4 / 2.5.57.0 / 2.5.58.4 上逐一核对；实机验证于 2.5.55.4 与 2.5.57.0）
 - 把发布版 jar 丢进 `mods` 文件夹即可（**替换旧版 goetyownedfix-1.0.0 / 1.1.0 / 1.1.1 / 1.1.2，不要同时装**）
 - v1.2.0 已合并 `goetyhellblastfix`，**装过 `goetyhellblastfix-0.0.2.jar` 的请删掉它**，避免重复加载
 - 与 RevelationFix / Goety:Revelation / Goety 各附属共存，无冲突
@@ -124,6 +126,7 @@ java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity
 
 ## 版本历史
 
+- **1.2.1**：补齐 RevelationFix 另两个同构仆从的入口守卫——`MaverickServant`（经继承的 Cultist `HurtByTargetGoal` 开启 alertSameType，可复现同类 NPE）与 `ApostleServant`（当前不可达，防御性对齐）；另为可选附属 goety_supreme 的 `IfritClone` 与 goetyominous 的 `MurmurServant` / `MurmurServantHead` 加了字符串 target 守卫（无编译期依赖、未装只告警），补丁目标总数 28
 - **1.2.0**：合并 `goetyhellblastfix` 0.0.2 的狱焰修复（`HellBlast$1.explodeHurt` 空归属者守卫），补丁目标总数 23；新增 `build.ps1`（版本号从 `mods.toml` 读取，杜绝文件名与元数据版本漂移）
 - **1.1.2**：**modId 由 `goetyfix` 改为 `goetyownedfix`**（mixin 配置同步改名为 `mixins.goetyownedfix.json`）——解决与「Goety Fix」内存修复模组的 modId 冲突，两者现在可以同时加载；同时把 Goety 依赖下限从 2.5.56 放宽到 **2.5.49**（补丁目标已在 2.5.49.3 / 2.5.55.4 上逐一核对）
 - **1.1.1**：新增 RevelationFix `HereticServant` 调用方入口守卫（经群友真实崩溃日志核实为实际崩溃路径，双保险）

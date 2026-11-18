@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 
 /**
- * Static/sandbox validation for goetyownedfix (1.2.0):
+ * Static/sandbox validation for goetyownedfix (1.2.1):
  *  1. mods.toml parsed with the SAME TOML parser Forge uses (night-config)
  *  2. mixins.goetyownedfix.json + pack.mcmeta parsed with gson (same as game)
  *  3. every class in the patch jar loads, and every @Mixin annotation
@@ -26,11 +26,16 @@ public class GoetyFixTest {
         "llxj.goetyfix.mixin.HellBlastExplosionNullGuardMixin",
         "llxj.goetyfix.mixin.HereticNullGuardMixin",
         "llxj.goetyfix.mixin.HereticServantNullGuardMixin",
+        "llxj.goetyfix.mixin.MaverickServantNullGuardMixin",
+        "llxj.goetyfix.mixin.ApostleServantNullGuardMixin",
         "llxj.goetyfix.mixin.HostileDrownedNecromancerNullGuardMixin",
         "llxj.goetyfix.mixin.HostileRedstoneGolemNullGuardMixin",
         "llxj.goetyfix.mixin.HostileRedstoneMonstrosityNullGuardMixin",
         "llxj.goetyfix.mixin.HuntingIllagerEntityNullGuardMixin",
+        "llxj.goetyfix.mixin.IfritCloneNullGuardMixin",
         "llxj.goetyfix.mixin.IrkNullGuardMixin",
+        "llxj.goetyfix.mixin.MurmurServantNullGuardMixin",
+        "llxj.goetyfix.mixin.MurmurServantHeadNullGuardMixin",
         "llxj.goetyfix.mixin.MobUtilNullGuardMixin",
         "llxj.goetyfix.mixin.OwnedNullGuardMixin",
         "llxj.goetyfix.mixin.RipperNullGuardMixin",

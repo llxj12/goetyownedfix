@@ -2,7 +2,8 @@ param(
     # Goety jar used only as a compile-time classpath entry (the mixins subclass its types).
     # Defaults to the newest 1.20.1 (2.x) jar in 修改目标MOD.
     [string]$GoetyJar = '',
-    # RevelationFix jar is needed only to compile the HereticServant caller-side mixin.
+    # RevelationFix jar is needed only to compile the RevelationFix caller-side mixins
+    # (HereticServant / MaverickServant / ApostleServant).
     # Defaults to the bundled jar found in the workspace (the class usually ships inside
     # GoetyRevelation's JarJar bundle, so a plain mods-folder jar may not exist).
     [string]$RevelationJar = '',
@@ -58,7 +59,7 @@ if (-not $RevelationJar) {
 }
 if ($RevelationJar -and -not (Test-Path -LiteralPath $RevelationJar)) { Fail "RevelationFix jar not found: $RevelationJar" }
 if ($RevelationJar) { Write-Host "[build] classpath revelationfix: $(Split-Path -Leaf $RevelationJar)" }
-else { Write-Host "[build] WARNING: no RevelationFix jar found; HereticServantNullGuardMixin will not compile" -ForegroundColor Yellow }
+else { Write-Host "[build] WARNING: no RevelationFix jar found; the RevelationFix servant mixins will not compile" -ForegroundColor Yellow }
 
 # ---- resolve Forge 1.20.1 compile dependencies -------------------------------
 $lib = 'E:\.minecraft\libraries'

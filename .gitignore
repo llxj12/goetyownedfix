@@ -5,6 +5,7 @@ out/
 
 # downloaded target mod jars & scratch dirs (do not push to git)
 修改目标MOD/
+诡厄巫法所有相关模组源码或jar文件/
 日志/
 .analysis/
 .verify/
