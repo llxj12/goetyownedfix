@@ -1,0 +1,40 @@
+plugins {
+    id 'fabric-loom' version '1.15.5'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // 与 Goety Fabric 移植版一致，使用 Mojang 官方映射
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+}
+
+// 不使用 Loom 的 mixin 注解处理器：Goety 类不在编译类路径上，AP 无法解析目标。
+// 因此所有 mixin 一律 remap = false，并在源码里直接写运行时 intermediary 名
+// （见 Entity / HellBlast 两个 mixin 的注释）。
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+    it.options.release.set(17)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    withSourcesJar()
+}

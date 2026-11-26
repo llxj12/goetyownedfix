@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "goetyownedfix",
+  "version": "${version}",
+  "name": "Goety Owned Null Guard Fix (Fabric)",
+  "description": "Null-guards for Goety isAlliedTo overrides and the HellBlast explosion, for the Fabric port of Goety.",
+  "authors": [
+    "llxj12"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "mixins": [
+    "goetyownedfix.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.5",
+    "minecraft": "1.20.1",
+    "goety": "*"
+  }
+}
