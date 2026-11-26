@@ -8,6 +8,10 @@
     "llxj12"
   ],
   "license": "MIT",
+  "contact": {
+    "homepage": "https://github.com/llxj12/goetyownedfix",
+    "sources": "https://github.com/llxj12/goetyownedfix/tree/fabric-1.20.1"
+  },
   "environment": "*",
   "mixins": [
     "goetyownedfix.mixins.json"
@@ -15,6 +19,6 @@
   "depends": {
     "fabricloader": ">=0.18.5",
     "minecraft": "1.20.1",
-    "goety": "*"
+    "goety": ">=0.7.0 <0.8.0"
   }
 }

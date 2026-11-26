@@ -2,5 +2,7 @@
 build/
 run/
 .jdk21/
+bin/
+*.log
 *.iml
 .idea/
