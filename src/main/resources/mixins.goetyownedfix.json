@@ -12,6 +12,7 @@
     "CultistAlliedGuardMixin",
     "EntityAlliedGuardMixin",
     "HereticAlliedGuardMixin",
+    "HellBlastExplosionNullGuardMixin",
     "HostileDrownedNecromancerAlliedGuardMixin",
     "HostileRedstoneGolemAlliedGuardMixin",
     "HostileRedstoneMonstrosityAlliedGuardMixin",

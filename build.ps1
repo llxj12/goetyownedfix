@@ -10,13 +10,13 @@
 #   .\build.ps1                 # uses ..\_mc1211_tools\jdk\...\bin\javac.exe if present, else PATH javac
 #   .\build.ps1 -Javac "C:\path\to\javac.exe"
 #
-# Output: dist\goetyownedfix-2.0.1-neoforge-1.21.1.jar
+# Output: dist\goetyownedfix-2.1.0-neoforge-1.21.1.jar
 
 param(
     [string]$Javac = '',
     [string]$Jar = '',
     [string]$ToolsDir = (Join-Path (Split-Path -Parent $PSScriptRoot) '_mc1211_tools'),
-    [string]$Version = '2.0.1',
+    [string]$Version = '2.1.0',
     # fixed timestamp for reproducible jars; 2026-09-26T17:00:00Z by default
     [long]$SourceDateEpoch = 1790432400
 )
@@ -45,6 +45,7 @@ Write-Host "jar  : $jarExe"
 $mcRoot = 'E:\.minecraft\libraries'
 $cpEntries = @(
     (Join-Path $ToolsDir 'deps\neoforge-21.1.219-client.jar'),
+    (Join-Path $ToolsDir 'deps\neoforge-21.1.219-universal.jar'),
     (Join-Path $ToolsDir 'deps\client-1.21.1-20240808.144430-srg.jar'),
     (Join-Path $ToolsDir 'deps\sponge-mixin-0.15.2+mixin.0.8.7.jar'),
     (Join-Path $ToolsDir 'deps\loader-4.0.42.jar'),
@@ -53,6 +54,7 @@ $cpEntries = @(
 # fall back to the live launcher libraries if a copy is missing
 $fallbacks = @{
     (Join-Path $ToolsDir 'deps\neoforge-21.1.219-client.jar')        = (Join-Path $mcRoot 'net\neoforged\neoforge\21.1.219\neoforge-21.1.219-client.jar')
+    (Join-Path $ToolsDir 'deps\neoforge-21.1.219-universal.jar')     = (Join-Path $mcRoot 'net\neoforged\neoforge\21.1.219\neoforge-21.1.219-universal.jar')
     (Join-Path $ToolsDir 'deps\client-1.21.1-20240808.144430-srg.jar') = (Join-Path $mcRoot 'net\minecraft\client\1.21.1-20240808.144430\client-1.21.1-20240808.144430-srg.jar')
     (Join-Path $ToolsDir 'deps\sponge-mixin-0.15.2+mixin.0.8.7.jar')   = (Join-Path $mcRoot 'net\fabricmc\sponge-mixin\0.15.2+mixin.0.8.7\sponge-mixin-0.15.2+mixin.0.8.7.jar')
     (Join-Path $ToolsDir 'deps\loader-4.0.42.jar')                     = (Join-Path $mcRoot 'net\neoforged\fancymodloader\loader\4.0.42\loader-4.0.42.jar')

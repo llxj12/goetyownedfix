@@ -2,7 +2,7 @@
 
 [English README](README_EN.md)
 
-一个 **NeoForge 1.21.1** 迷你补丁，修复 **诡厄巫法 (Goety) 的 `isAlliedTo` 空指针崩溃家族**。
+一个 **NeoForge 1.21.1** 迷你补丁，修复 **诡厄巫法 (Goety) 的 `isAlliedTo` 空指针崩溃家族**，并为狱焰（HellBlast）爆炸的点火调用加入防御性空值守卫。
 
 ## 症状
 
@@ -25,20 +25,21 @@ Goety 的多个实体类重写了 `isAlliedTo(Entity)`。当目标 AI `HurtByTar
 
 对 **Goety 3.1.5.1（NeoForge 1.21.1 移植版）全部 3090 个 Goety 类扫描结果：重写 `isAlliedTo(Entity)` 的类共 19 个，全部存在同类隐患**。
 
-## 修复方式（v2.0.1）
+## 修复方式（v2.1.0）
 
 在全部 19 个重写类的 `isAlliedTo` 入口注入空判断（参数为 null 直接返回 false），并额外做两层兜底：
 
 - **19 个 Goety 3.1.5.1 重写类**：`Owned`、`Apostle`、`Vizier`、`VizierClone`、`BoneLord`、`SkullLord`、`BroodMother`、`Cultist`、`Heretic`、`Irk`、`Ripper`、`SquallGolem`、`WitherNecromancer`、`HostileDrownedNecromancer`、`HostileRedstoneGolem`、`HostileRedstoneMonstrosity`、`HuntingIllagerEntity`、`AbstractEnderling`、`AbstractSpiderServant`
 - **原版 `Entity.isAlliedTo(Entity)`**：兜底，覆盖所有"透传 super"的调用方（含其它 mod 的同名重写）
 - **`MobUtil.illagerAllies`**：工具类内部对参数同样无空判断，一并防护
+- **`HellBlast$1.explodeHurt` 的点火调用**：重定向狱焰爆炸里唯一的 `Entity.igniteForSeconds`，接收者为 null 时跳过点火；`super.explodeHurt` 的爆炸伤害与击退不受影响。3.1.5.1 上该接收者是被炸到的实体，因此行为不变，属防御性对齐
 
 null 不可能是盟友，返回 false 安全且正确；**对有效实体（非 null 参数）的判断完全不受影响**，零副作用。mixin-only，不含任何 Goety 代码。
 
 ## 安装
 
 - 需要 **NeoForge 1.21.1（21.1.x）** + **Goety 3.1.5+（1.21.1 移植版）**
-- 把 `dist/goetyownedfix-2.0.1-neoforge-1.21.1.jar` 丢进 `mods` 文件夹即可
+- 把 `dist/goetyownedfix-2.1.0-neoforge-1.21.1.jar` 丢进 `mods` 文件夹即可
 - 2.0.1 起 modId 为 `goetyownedfix`（v2.0.0 为 `goetyfix`），替换旧 jar 即可，不影响存档
 - 客户端和服务端**都要装**（集成服务器 = 开存档的那台机器必须装）
 
@@ -60,7 +61,7 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体（非
 
 ```powershell
 .\build.ps1                    # 自动查找工具链并编译打包到 dist\
-.\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.0.1
+.\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.1.0
 ```
 
 打包时会把暂存文件的**时间戳固定**到 `SOURCE_DATE_EPOCH`（默认 `1790432400` = 2026-09-26T14:20:00Z），因此同源重建产物**字节级一致**；换个 epoch 会得到内容等价但哈希不同的产物，发布时请只声明一种参数。
@@ -70,6 +71,7 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体（非
 | jar | 用途 |
 | --- | --- |
 | `neoforge-21.1.219-client.jar` | NeoForge 补丁后的 Minecraft（官方名） |
+| `neoforge-21.1.219-universal.jar` | NeoForge 本体（`IEntityExtension` 等扩展方法，编译 `igniteForSeconds` 所必需） |
 | `client-1.21.1-20240808.144430-srg.jar` | 原版 1.21.1 客户端 |
 | `sponge-mixin-0.15.2+mixin.0.8.7.jar` | Mixin（随 NeoForge 1.21.1 分发） |
 | `loader-4.0.42.jar` | FancyModLoader 的 `@Mod` 注解 |
@@ -79,6 +81,7 @@ null 不可能是盟友，返回 false 安全且正确；**对有效实体（非
 
 ## 版本历史
 
+- **2.1.0**：合入狱焰（HellBlast）爆炸点火守卫，补丁目标 21 → 22；3.1.5.1 上该路径已不捕获 owner，此守卫为防御性对齐，行为不变
 - **2.0.1**：**modId 由 `goetyfix` 改为 `goetyownedfix`**（mixin 配置同步改名为 `mixins.goetyownedfix.json`）——解决与 modId 为 `goetyfix` 的「Goety Fix」内存修复 mod 的冲突；同时修复构建脚本未清理 `build\stage` 导致 jar 内残留旧配置的问题
 - **2.0.0**：适配 Minecraft 1.21.1 / NeoForge；覆盖 Goety 3.1.5.1 全部 19 个 `isAlliedTo` 重写类 + 原版 `Entity.isAlliedTo` 兜底 + `MobUtil.illagerAllies` 防护 + 软模式抗崩溃
 

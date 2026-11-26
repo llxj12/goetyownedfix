@@ -2,7 +2,7 @@
 
 [中文说明](README.md)
 
-A tiny **NeoForge 1.21.1** patch that fixes the **`isAlliedTo` NullPointerException family in Goety**.
+A tiny **NeoForge 1.21.1** patch that fixes the **`isAlliedTo` NullPointerException family in Goety**, and adds a defensive null guard to the ignition call in the HellBlast explosion.
 
 ## Symptom
 
@@ -25,20 +25,21 @@ Several Goety entity classes override `isAlliedTo(Entity)`. When the target AI `
 
 A scan of **all 3090 Goety classes in Goety 3.1.5.1 (the NeoForge 1.21.1 port)** shows **19 classes override `isAlliedTo(Entity)`, all of them sharing the same hazard**.
 
-## Fix (v2.0.1)
+## Fix (v2.1.0)
 
 A null check is injected at the `isAlliedTo` entry point of all 19 overriding classes (a null argument returns `false`), plus two extra safety nets:
 
 - **19 Goety 3.1.5.1 overrides**: `Owned`, `Apostle`, `Vizier`, `VizierClone`, `BoneLord`, `SkullLord`, `BroodMother`, `Cultist`, `Heretic`, `Irk`, `Ripper`, `SquallGolem`, `WitherNecromancer`, `HostileDrownedNecromancer`, `HostileRedstoneGolem`, `HostileRedstoneMonstrosity`, `HuntingIllagerEntity`, `AbstractEnderling`, `AbstractSpiderServant`
 - **vanilla `Entity.isAlliedTo(Entity)`**: covers every "pass-through to super" caller, including same-shaped overrides from other mods
 - **`MobUtil.illagerAllies`**: the helper dereferences both arguments without a null check, so it is guarded too
+- **the ignition call in `HellBlast$1.explodeHurt`**: the single `Entity.igniteForSeconds` call is redirected and skipped when its receiver is null; the explosion damage applied by `super.explodeHurt` and the knockback are untouched. On Goety 3.1.5.1 the receiver is the damaged entity, so behaviour there is unchanged — this is a defensive alignment
 
 A null entity can never be an ally, so returning `false` is safe and correct; **judgements for non-null arguments are completely unaffected** (zero side effects). Mixin-only — it contains no Goety code.
 
 ## Installation
 
 - Requires **NeoForge 1.21.1 (21.1.x)** and **Goety 3.1.5+ (1.21.1 port)**
-- Drop `dist/goetyownedfix-2.0.1-neoforge-1.21.1.jar` into your `mods` folder
+- Drop `dist/goetyownedfix-2.1.0-neoforge-1.21.1.jar` into your `mods` folder
 - Since 2.0.1 the modId is `goetyownedfix` (was `goetyfix` in v2.0.0); just replace the old jar, saves are unaffected
 - Install on **both client and server** (for a single-player world, the machine hosting the world)
 
@@ -60,7 +61,7 @@ Requires **JDK 21** (NeoForge 1.21.1 and Goety 3.1.5.1 are Java 21 bytecode; thi
 
 ```powershell
 .\build.ps1                    # finds the toolchain and packs dist\
-.\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.0.1
+.\build.ps1 -Javac "C:\path\to\jdk21\bin\javac.exe" -Version 2.1.0
 ```
 
 Entry timestamps of the staged files are pinned to `SOURCE_DATE_EPOCH` (default `1790432400` = 2026-09-26T14:20:00Z), so a rebuild from the same sources is **byte-identical**. A different epoch yields an equivalent jar with a different hash, so only one parameter set should be advertised per release.
@@ -70,6 +71,7 @@ Classpath jars (read from `..\_mc1211_tools\deps\`, falling back to the local la
 | jar | Purpose |
 | --- | --- |
 | `neoforge-21.1.219-client.jar` | NeoForge-patched Minecraft (official names) |
+| `neoforge-21.1.219-universal.jar` | NeoForge itself (`IEntityExtension` and other extension methods; required to compile against `igniteForSeconds`) |
 | `client-1.21.1-20240808.144430-srg.jar` | vanilla 1.21.1 client |
 | `sponge-mixin-0.15.2+mixin.0.8.7.jar` | Mixin (shipped with NeoForge 1.21.1) |
 | `loader-4.0.42.jar` | FancyModLoader, provides the `@Mod` annotation |
@@ -79,6 +81,7 @@ Packaging notes: `META-INF/MANIFEST.MF` must contain `MixinConfigs: mixins.goety
 
 ## Version history
 
+- **2.1.0**: merged the HellBlast explosion ignition guard, patch targets 21 → 22; on 3.1.5.1 that path no longer captures the owner, so the guard is a defensive alignment with no behaviour change
 - **2.0.1**: **modId changed from `goetyfix` to `goetyownedfix`** (mixin config renamed to `mixins.goetyownedfix.json`) — resolves the conflict with the `goetyfix` modId used by the Goety Fix memory-leak mod; also fixes the build script leaving a stale config in `build\stage`
 - **2.0.0**: ported to Minecraft 1.21.1 / NeoForge; covers all 19 `isAlliedTo` overrides in Goety 3.1.5.1 + vanilla `Entity.isAlliedTo` safety net + `MobUtil.illagerAllies` guard + soft-mode crash resistance
 
